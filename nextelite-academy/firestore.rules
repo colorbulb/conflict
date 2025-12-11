@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read for everyone (public content)
+    match /{document=**} {
+      allow read: if true;
+    }
+    
+    // Language-specific collections structure: {lang}/collection/{docId}
+    // Allow write for authenticated users only
+    
+    // Courses collection: {lang}/courses/{courseId}
+    match /{lang}/courses/{courseId} {
+      allow write: if request.auth != null;
+    }
+    
+    // Instructors collection: {lang}/instructors/{instructorId}
+    match /{lang}/instructors/{instructorId} {
+      allow write: if request.auth != null;
+    }
+    
+    // Blog Posts collection: {lang}/blogPosts/{postId}
+    match /{lang}/blogPosts/{postId} {
+      allow write: if request.auth != null;
+    }
+    
+    // Theme Colors: {lang}/themeColors/main
+    match /{lang}/themeColors/{settingId} {
+      allow write: if request.auth != null;
+    }
+    
+    // Trial Settings: {lang}/trialSettings/main
+    match /{lang}/trialSettings/{settingId} {
+      allow write: if request.auth != null;
+    }
+    
+    // Submissions: {lang}/submissions/{submissionId}
+    match /{lang}/submissions/{submissionId} {
+      allow create: if true; // Anyone can submit (contact forms, trial bookings)
+      allow read, update, delete: if request.auth != null;
+    }
+    
+    // Translations: {lang}/translations/main
+    match /{lang}/translations/{settingId} {
+      allow write: if request.auth != null;
+    }
+    
+    // Images collection (for storage metadata)
+    match /images/{imageId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
