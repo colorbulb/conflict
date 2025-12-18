@@ -94,6 +94,43 @@ export interface Submission {
   status: 'new' | 'read';
 }
 
+export interface PageContent {
+  hero: {
+    titleLine1: string;
+    titleLine2: string;
+    subtitle: string;
+    exploreButton: string;
+    trialButton: string;
+  };
+  sections: {
+    programs: {
+      heading: string;
+      subheading: string;
+    };
+    mentors: {
+      heading: string;
+      subheading: string;
+    };
+    gallery: {
+      heading: string;
+    };
+    contact: {
+      heading: string;
+      subheading: string;
+      address: string;
+      email: string;
+    };
+  };
+  galleryImages: string[];
+  backgrounds?: {
+    hero?: string;
+    programs?: string;
+    mentors?: string;
+    gallery?: string;
+    contact?: string;
+  };
+}
+
 export interface AppData {
   courses: Course[];
   instructors: Instructor[];
@@ -101,4 +138,5 @@ export interface AppData {
   themeColors: ThemeColors;
   trialSettings: TrialSettings;
   submissions: Submission[];
+  pageContent?: PageContent;
 }

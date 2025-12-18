@@ -32,9 +32,9 @@ const Layout: React.FC<LayoutProps> = ({ children, trialSettings, onBookingClick
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-white text-slate-800 font-sans bg-gradient-to-br from-gray-50 via-white to-gray-50">
+    <div className="relative min-h-screen overflow-hidden bg-slate-50 text-slate-900 font-sans">
       {/* Navigation */}
-      <nav className="fixed w-full z-40 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+      <nav className="fixed w-full z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <Link 
@@ -52,7 +52,7 @@ const Layout: React.FC<LayoutProps> = ({ children, trialSettings, onBookingClick
                 <Link 
                   key={link.path} 
                   to={link.path}
-                  className="text-gray-600 hover:text-brand-blue font-semibold transition-colors"
+                  className="text-gray-800 hover:text-brand-blue font-semibold transition-colors"
                 >
                   {link.label}
                 </Link>
@@ -61,7 +61,7 @@ const Layout: React.FC<LayoutProps> = ({ children, trialSettings, onBookingClick
               {/* Language Switcher */}
               <button 
                 onClick={() => setLanguage(language === 'en' ? 'zh' : 'en')}
-                className="flex items-center space-x-1 text-gray-500 hover:text-brand-blue border border-gray-200 rounded-full px-3 py-1 transition-all"
+                className="flex items-center space-x-1 text-gray-700 hover:text-brand-blue border border-gray-300 rounded-full px-3 py-1 transition-all"
               >
                 <Globe className="w-4 h-4" />
                 <span className="text-sm font-bold uppercase">{language}</span>
@@ -85,7 +85,7 @@ const Layout: React.FC<LayoutProps> = ({ children, trialSettings, onBookingClick
             <div className="md:hidden flex items-center space-x-4">
                <button 
                 onClick={() => setLanguage(language === 'en' ? 'zh' : 'en')}
-                className="flex items-center space-x-1 text-gray-600 border border-gray-200 rounded-full px-3 py-1"
+                className="flex items-center space-x-1 text-gray-700 border border-gray-300 rounded-full px-3 py-1"
               >
                 <Globe className="w-4 h-4" />
                 <span className="text-sm font-bold uppercase">{language}</span>
@@ -111,7 +111,7 @@ const Layout: React.FC<LayoutProps> = ({ children, trialSettings, onBookingClick
                   <button
                     key={link.path}
                     onClick={() => handleNavClick(link.path)}
-                    className="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-brand-blue hover:bg-gray-50 w-full text-center active:bg-gray-100"
+                    className="block px-3 py-3 rounded-md text-base font-medium text-gray-800 hover:text-brand-blue hover:bg-gray-50 w-full text-center active:bg-gray-100"
                   >
                     {link.label}
                   </button>

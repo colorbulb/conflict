@@ -31,10 +31,10 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onViewDetails }) => {
       </div>
       
       <div className="p-6 flex-grow flex flex-col">
-        <span className="inline-block bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-semibold mb-4 w-fit">
+        <span className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-semibold mb-4 w-fit">
           {course.ageGroup}
         </span>
-        <p className="text-gray-600 mb-6 leading-relaxed">
+        <p className="text-gray-700 mb-6 leading-relaxed">
           {course.description}
         </p>
 
@@ -51,7 +51,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onViewDetails }) => {
           <div className="border-t border-gray-100 pt-4">
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center text-gray-400 font-semibold hover:text-gray-600 text-sm focus:outline-none transition-colors"
+              className="flex items-center text-gray-600 font-semibold hover:text-gray-800 text-sm focus:outline-none transition-colors"
             >
               {isExpanded ? t.course.outlineHide : t.course.outlineShow}
               {isExpanded ? <ChevronUp className="ml-1 w-3 h-3" /> : <ChevronDown className="ml-1 w-3 h-3" />}

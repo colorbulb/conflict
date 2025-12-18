@@ -15,7 +15,8 @@ import {
 import { db } from "./config.js";
 
 // Collection structure based on AppData from constants.tsx
-// Collections are organized by language: {lang}/courses, {lang}/instructors, etc.
+// Collections are organized by language using suffixes, e.g.:
+//   courses_en, courses_zh, blogPosts_en, blogPosts_zh, etc.
 const COLLECTIONS = {
   COURSES: 'courses',
   INSTRUCTORS: 'instructors',
@@ -23,12 +24,14 @@ const COLLECTIONS = {
   THEME_COLORS: 'themeColors',
   TRIAL_SETTINGS: 'trialSettings',
   SUBMISSIONS: 'submissions',
-  TRANSLATIONS: 'translations'
+  TRANSLATIONS: 'translations',
+  PAGE_CONTENT: 'pageContent'
 };
 
-// Helper to get language-specific collection path
+// Helper to get language-specific collection name
+// Example: getLangCollection('courses', 'en') => 'courses_en'
 const getLangCollection = (collectionName, lang = 'en') => {
-  return `${lang}/${collectionName}`;
+  return `${collectionName}_${lang}`;
 };
 
 // ===== COURSES =====
@@ -291,6 +294,30 @@ export const saveTranslations = async (translations, lang = 'en') => {
   }
 };
 
+// ===== PAGE CONTENT =====
+export const getPageContent = async (lang = 'en') => {
+  try {
+    const pageContentRef = doc(db, getLangCollection(COLLECTIONS.PAGE_CONTENT, lang), 'main');
+    const snapshot = await getDoc(pageContentRef);
+    if (snapshot.exists()) {
+      return snapshot.data();
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching page content:', error);
+    return null;
+  }
+};
+
+export const savePageContent = async (pageContent, lang = 'en') => {
+  try {
+    await setDoc(doc(db, getLangCollection(COLLECTIONS.PAGE_CONTENT, lang), 'main'), pageContent);
+  } catch (error) {
+    console.error('Error saving page content:', error);
+    throw error;
+  }
+};
+
 // ===== INITIALIZE DATA (Import from constants.tsx) =====
 export const initializeFirestore = async (initialData) => {
   try {
@@ -310,6 +337,9 @@ export const initializeFirestore = async (initialData) => {
         await saveAllBlogPosts(langData.blogPosts || [], lang);
         await saveThemeColors(langData.themeColors || {}, lang);
         await saveTrialSettings(langData.trialSettings || {}, lang);
+        if (langData.pageContent) {
+          await savePageContent(langData.pageContent, lang);
+        }
       }
     }
 
@@ -324,13 +354,14 @@ export const initializeFirestore = async (initialData) => {
 // ===== GET ALL APP DATA =====
 export const getAppData = async (lang = 'en') => {
   try {
-    const [courses, instructors, blogPosts, themeColors, trialSettings, submissions] = await Promise.all([
+    const [courses, instructors, blogPosts, themeColors, trialSettings, submissions, pageContent] = await Promise.all([
       getCourses(lang),
       getInstructors(lang),
       getBlogPosts(lang),
       getThemeColors(lang),
       getTrialSettings(lang),
-      getSubmissions(lang)
+      getSubmissions(lang),
+      getPageContent(lang)
     ]);
 
     return {
@@ -339,7 +370,8 @@ export const getAppData = async (lang = 'en') => {
       blogPosts,
       themeColors: themeColors || {},
       trialSettings: trialSettings || {},
-      submissions
+      submissions,
+      pageContent: pageContent || null
     };
   } catch (error) {
     console.error('Error fetching app data:', error);
@@ -355,7 +387,8 @@ export const saveAppData = async (appData, lang = 'en') => {
       saveAllInstructors(appData.instructors || [], lang),
       saveAllBlogPosts(appData.blogPosts || [], lang),
       saveThemeColors(appData.themeColors || {}, lang),
-      saveTrialSettings(appData.trialSettings || {}, lang)
+      saveTrialSettings(appData.trialSettings || {}, lang),
+      appData.pageContent ? savePageContent(appData.pageContent, lang) : Promise.resolve()
     ]);
   } catch (error) {
     console.error('Error saving app data:', error);

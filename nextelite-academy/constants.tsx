@@ -1,6 +1,6 @@
 import React from 'react';
 import { BookOpen, Brain, Cpu } from 'lucide-react';
-import { Course, Instructor, AppData, BlogPost } from './types';
+import { Course, Instructor, AppData, BlogPost, PageContent } from './types';
 
 // Icons need to be recreated in App logic or passed, but keeping them here for static ref is okay 
 // provided we map them correctly. 
@@ -30,6 +30,94 @@ const DEFAULT_TRIAL_SETTINGS = {
   message: 'Limited slots available for this weekend!',
   blockedDates: [], // Strings 'YYYY-MM-DD'
   customAvailability: {}
+};
+
+const DEFAULT_PAGE_CONTENT_EN: PageContent = {
+  hero: {
+    titleLine1: 'Shape the Mind,',
+    titleLine2: 'Lead the Future',
+    subtitle: 'Join NextElite Academy for premier English Debate, Logical Thinking, and AI Coding. We build confidence, critical thinking, and future-ready skills.',
+    exploreButton: 'Explore Courses',
+    trialButton: 'Book a Free Trial',
+  },
+  sections: {
+    programs: {
+      heading: 'Our Programs',
+      subheading: 'Designed for Primary and Secondary students to excel beyond the classroom.',
+    },
+    mentors: {
+      heading: 'Meet Our Mentors',
+      subheading: 'Expert guidance from passionate educators.',
+    },
+    gallery: {
+      heading: 'Moments of Joy',
+    },
+    contact: {
+      heading: 'Get In Touch',
+      subheading: 'Ready to start the journey? Fill out the form or visit us at our campus!',
+      address: '123 Education Rd, Innovation District',
+      email: 'hello@nextelite.edu',
+    },
+  },
+  galleryImages: [
+    'https://picsum.photos/id/20/800/600',
+    'https://picsum.photos/id/119/800/600',
+    'https://picsum.photos/id/180/800/600',
+    'https://picsum.photos/id/201/800/600',
+    'https://picsum.photos/id/250/800/600',
+    'https://picsum.photos/id/366/800/600',
+  ],
+  backgrounds: {
+    hero: '',
+    programs: '',
+    mentors: '',
+    gallery: '',
+    contact: '',
+  },
+};
+
+const DEFAULT_PAGE_CONTENT_ZH: PageContent = {
+  hero: {
+    titleLine1: '啟發思維，',
+    titleLine2: '引領未來',
+    subtitle: '加入 NextElite Academy，體驗頂尖的英語辯論、邏輯思維及 AI 編程課程。我們致力於建立自信、批判性思考及未來技能。',
+    exploreButton: '瀏覽課程',
+    trialButton: '預約試堂',
+  },
+  sections: {
+    programs: {
+      heading: '課程介紹',
+      subheading: '專為中小學生設計，讓學習超越課室。',
+    },
+    mentors: {
+      heading: '專業導師',
+      subheading: '充滿熱誠的教育專家，引領學生成長。',
+    },
+    gallery: {
+      heading: '精彩時刻',
+    },
+    contact: {
+      heading: '聯絡我們',
+      subheading: '準備好開始了嗎？填寫表格或親臨我們的校舍！',
+      address: '123 Education Rd, Innovation District',
+      email: 'hello@nextelite.edu',
+    },
+  },
+  galleryImages: [
+    'https://picsum.photos/id/20/800/600',
+    'https://picsum.photos/id/119/800/600',
+    'https://picsum.photos/id/180/800/600',
+    'https://picsum.photos/id/201/800/600',
+    'https://picsum.photos/id/250/800/600',
+    'https://picsum.photos/id/366/800/600',
+  ],
+  backgrounds: {
+    hero: '',
+    programs: '',
+    mentors: '',
+    gallery: '',
+    contact: '',
+  },
 };
 
 // Placeholder PDF URL for demo purposes
@@ -74,6 +162,7 @@ export const INITIAL_DATA: { en: AppData; zh: AppData } = {
     trialSettings: DEFAULT_TRIAL_SETTINGS,
     submissions: [],
     blogPosts: INITIAL_BLOG_POSTS,
+    pageContent: DEFAULT_PAGE_CONTENT_EN,
     courses: [
       {
         id: 'c1',
@@ -218,6 +307,7 @@ export const INITIAL_DATA: { en: AppData; zh: AppData } = {
     themeColors: DEFAULT_THEME,
     trialSettings: DEFAULT_TRIAL_SETTINGS,
     submissions: [],
+    pageContent: DEFAULT_PAGE_CONTENT_ZH,
     blogPosts: [
        {
         id: 'b1',

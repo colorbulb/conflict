@@ -27,7 +27,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll })
       initial={{ opacity: 0, x: 100 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 100 }}
-      className="min-h-screen bg-gray-50 pb-20 pt-24"
+      className="min-h-screen bg-slate-50 pb-20 pt-24"
     >
       {/* PDF Modal */}
       <PDFViewer 
@@ -40,7 +40,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll })
         {/* Navigation */}
         <button 
           onClick={onBack}
-          className="flex items-center text-gray-600 hover:text-brand-blue mb-6 transition-colors font-semibold"
+          className="flex items-center text-gray-800 hover:text-brand-blue mb-6 transition-colors font-semibold"
         >
           <ArrowLeft className="w-5 h-5 mr-2" /> {t.course.back}
         </button>
@@ -77,14 +77,14 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll })
             {/* Overview */}
             <section className="bg-white p-8 rounded-3xl shadow-sm">
                <h2 className="text-2xl font-display font-bold text-gray-800 mb-4">{t.course.overview}</h2>
-               <p className="text-gray-600 leading-relaxed mb-6">
+               <p className="text-gray-800 leading-relaxed mb-6">
                  {course.fullDescription || course.description}
                </p>
                
-               <h3 className="font-bold text-gray-800 mb-4 text-lg">{t.course.whatToLearn}</h3>
+               <h3 className="font-bold text-gray-900 mb-4 text-lg">{t.course.whatToLearn}</h3>
                <ul className="space-y-3">
                  {course.outline.map((item, i) => (
-                   <li key={i} className="flex items-start text-gray-600">
+                   <li key={i} className="flex items-start text-gray-800">
                      <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
                      {item}
                    </li>
@@ -122,11 +122,11 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll })
                <h3 className="text-xl font-bold text-gray-800 mb-4">{t.course.details}</h3>
                
                <div className="space-y-4 mb-6">
-                 <div className="flex items-center text-gray-600">
+                 <div className="flex items-center text-gray-800">
                    <Calendar className="w-5 h-5 mr-3 text-brand-blue" />
                    <span>{t.course.duration}</span>
                  </div>
-                 <div className="flex items-center text-gray-600">
+                 <div className="flex items-center text-gray-800">
                     <div className="w-5 h-5 mr-3 flex items-center justify-center">
                       <span className="block w-2 h-2 bg-green-500 rounded-full"></span>
                     </div>
@@ -146,7 +146,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll })
                    >
                       <div className="flex items-center space-x-2 overflow-hidden">
                         <Eye className="w-4 h-4 text-brand-blue group-hover:scale-110 transition-transform" />
-                        <span className="text-sm text-gray-600 font-medium truncate">{file.name}</span>
+                        <span className="text-sm text-gray-800 font-medium truncate">{file.name}</span>
                       </div>
                       <span className="text-xs text-brand-blue font-bold whitespace-nowrap ml-2 opacity-0 group-hover:opacity-100 transition-opacity">{t.course.view}</span>
                    </div>

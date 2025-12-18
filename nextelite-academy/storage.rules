@@ -2,16 +2,28 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Public images folder - everyone can read, authenticated users can write
+    // Public images folder - everyone can read and write (CMS managed)
     match /images/{imageId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if true;
     }
     
-    // Image library folder - public read, authenticated write
+    // Image library folder - public read and write
     match /images/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if true;
+    }
+    
+    // Gallery folder - public read and write (CMS managed)
+    match /gallery/{allPaths=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
+    // Backgrounds folder - public read and write (CMS managed)
+    match /backgrounds/{allPaths=**} {
+      allow read: if true;
+      allow write: if true;
     }
     
     // Announcement images - public read, authenticated write
