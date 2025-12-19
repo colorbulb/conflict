@@ -2,50 +2,52 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Public images folder - everyone can read and write (CMS managed)
-    match /images/{imageId} {
-      allow read: if true;
-      allow write: if true;
-    }
-    
-    // Image library folder - public read and write
+    // CMS-managed folders - public read and write (no auth required)
     match /images/{allPaths=**} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if true;
     }
     
-    // Gallery folder - public read and write (CMS managed)
     match /gallery/{allPaths=**} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if true;
     }
     
-    // Backgrounds folder - public read and write (CMS managed)
     match /backgrounds/{allPaths=**} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if true;
     }
     
-    // Announcement images - public read, authenticated write
-    match /announcements/{announcementId} {
+    match /logo/{allPaths=**} {
+      allow read, write: if true;
+    }
+    
+    match /attachments/{allPaths=**} {
+      allow read, write: if true;
+    }
+    
+    match /instructors/{allPaths=**} {
+      allow read, write: if true;
+    }
+    
+    match /blog/{allPaths=**} {
+      allow read, write: if true;
+    }
+    
+    // Other folders - public read, authenticated write
+    match /announcements/{allPaths=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
     
-    // Course images - public read, authenticated write
-    match /courses/{courseId} {
+    match /courses/{allPaths=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
     
-    // Blog images - public read, authenticated write
-    match /blog/{postId} {
+    match /blog/{allPaths=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }
     
-    // Team member images - public read, authenticated write
-    match /team/{memberId} {
+    match /team/{allPaths=**} {
       allow read: if true;
       allow write: if request.auth != null;
     }

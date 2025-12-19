@@ -14,6 +14,7 @@ echo "💾 Committing changes..."
 git commit -m "Deploy: $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
 
 echo "📤 Pushing to GitHub..."
-git push
+git push origin main || git push --set-upstream origin main || echo "Git push skipped (remote has changes or no changes to push)"
 
 echo "✅ Deployment complete!"
+

@@ -25,7 +25,8 @@ const COLLECTIONS = {
   TRIAL_SETTINGS: 'trialSettings',
   SUBMISSIONS: 'submissions',
   TRANSLATIONS: 'translations',
-  PAGE_CONTENT: 'pageContent'
+  PAGE_CONTENT: 'pageContent',
+  LOOKUP_LISTS: 'lookupLists'
 };
 
 // Helper to get language-specific collection name
@@ -48,12 +49,24 @@ export const getCourses = async (lang = 'en') => {
 
 export const saveCourse = async (course, lang = 'en') => {
   try {
+    // Prepare course data for Firestore: ensure icon is string and ageGroup is array
+    const courseData = {
+      ...course,
+      icon: typeof course.icon === 'string' ? course.icon : 'coding', // Always save as string
+      ageGroup: Array.isArray(course.ageGroup) ? course.ageGroup : (course.ageGroup ? [course.ageGroup] : []) // Ensure array
+    };
+    
+    // Remove ReactNode icon if present (can't serialize to Firestore)
+    if (typeof courseData.icon !== 'string') {
+      courseData.icon = 'coding';
+    }
+    
     if (course.id) {
-      await setDoc(doc(db, getLangCollection(COLLECTIONS.COURSES, lang), course.id), course);
+      await setDoc(doc(db, getLangCollection(COLLECTIONS.COURSES, lang), course.id), courseData);
       return course.id;
     } else {
-      const { id, ...courseData } = course;
-      const docRef = await addDoc(collection(db, getLangCollection(COLLECTIONS.COURSES, lang)), courseData);
+      const { id, ...dataToSave } = courseData;
+      const docRef = await addDoc(collection(db, getLangCollection(COLLECTIONS.COURSES, lang)), dataToSave);
       return docRef.id;
     }
   } catch (error) {
@@ -318,6 +331,30 @@ export const savePageContent = async (pageContent, lang = 'en') => {
   }
 };
 
+// ===== LOOKUP LISTS =====
+export const getLookupLists = async (lang = 'en') => {
+  try {
+    const listsRef = doc(db, getLangCollection(COLLECTIONS.LOOKUP_LISTS, lang), 'main');
+    const snapshot = await getDoc(listsRef);
+    if (snapshot.exists()) {
+      return snapshot.data();
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching lookup lists:', error);
+    return null;
+  }
+};
+
+export const saveLookupLists = async (lists, lang = 'en') => {
+  try {
+    await setDoc(doc(db, getLangCollection(COLLECTIONS.LOOKUP_LISTS, lang), 'main'), lists);
+  } catch (error) {
+    console.error('Error saving lookup lists:', error);
+    throw error;
+  }
+};
+
 // ===== INITIALIZE DATA (Import from constants.tsx) =====
 export const initializeFirestore = async (initialData) => {
   try {
@@ -340,6 +377,9 @@ export const initializeFirestore = async (initialData) => {
         if (langData.pageContent) {
           await savePageContent(langData.pageContent, lang);
         }
+        if (langData.lookupLists) {
+          await saveLookupLists(langData.lookupLists, lang);
+        }
       }
     }
 
@@ -351,31 +391,118 @@ export const initializeFirestore = async (initialData) => {
   }
 };
 
+// ===== CUSTOM PAGES =====
+export const getCustomPages = async (lang = 'en') => {
+  try {
+    const snapshot = await getDocs(collection(db, `${lang}_pages`));
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error(`Error fetching custom pages (${lang}):`, error);
+    return [];
+  }
+};
+
+export const saveCustomPages = async (pages, lang = 'en') => {
+  try {
+    console.log(`Saving ${pages.length} custom pages for language: ${lang}`);
+    const batch = writeBatch(db);
+    // Delete all existing pages
+    const existing = await getDocs(collection(db, `${lang}_pages`));
+    console.log(`Deleting ${existing.docs.length} existing pages`);
+    existing.docs.forEach(doc => batch.delete(doc.ref));
+    // Add new pages
+    pages.forEach(page => {
+      const ref = doc(db, `${lang}_pages`, page.id);
+      batch.set(ref, page);
+    });
+    await batch.commit();
+    console.log(`Successfully saved ${pages.length} custom pages`);
+  } catch (error) {
+    console.error(`Error saving custom pages (${lang}):`, error);
+    throw error;
+  }
+};
+
+// ===== MENU ITEMS =====
+export const getMenuItems = async (lang = 'en') => {
+  try {
+    const snapshot = await getDocs(collection(db, `${lang}_menu`));
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error(`Error fetching menu items (${lang}):`, error);
+    return [];
+  }
+};
+
+export const saveMenuItems = async (items, lang = 'en') => {
+  try {
+    console.log(`Saving ${items.length} menu items for language: ${lang}`);
+    const batch = writeBatch(db);
+    // Delete all existing items
+    const existing = await getDocs(collection(db, `${lang}_menu`));
+    console.log(`Deleting ${existing.docs.length} existing menu items`);
+    existing.docs.forEach(doc => batch.delete(doc.ref));
+    // Add new items
+    items.forEach(item => {
+      const ref = doc(db, `${lang}_menu`, item.id);
+      batch.set(ref, item);
+    });
+    await batch.commit();
+    console.log(`Successfully saved ${items.length} menu items`);
+  } catch (error) {
+    console.error(`Error saving menu items (${lang}):`, error);
+    throw error;
+  }
+};
+
 // ===== GET ALL APP DATA =====
 export const getAppData = async (lang = 'en') => {
   try {
-    const [courses, instructors, blogPosts, themeColors, trialSettings, submissions, pageContent] = await Promise.all([
+    const [courses, instructors, blogPosts, themeColors, trialSettings, submissions, pageContent, lookupLists] = await Promise.allSettled([
       getCourses(lang),
       getInstructors(lang),
       getBlogPosts(lang),
       getThemeColors(lang),
       getTrialSettings(lang),
       getSubmissions(lang),
-      getPageContent(lang)
+      getPageContent(lang),
+      getLookupLists(lang)
+    ]);
+
+    // Extract values from Promise.allSettled results, using fallbacks for rejected promises
+    const getValue = (result, fallback) => result.status === 'fulfilled' ? result.value : fallback;
+
+    // Get custom pages and menu items
+    const [customPagesResult, menuItemsResult] = await Promise.allSettled([
+      getCustomPages(lang),
+      getMenuItems(lang)
     ]);
 
     return {
-      courses,
-      instructors,
-      blogPosts,
-      themeColors: themeColors || {},
-      trialSettings: trialSettings || {},
-      submissions,
-      pageContent: pageContent || null
+      courses: getValue(courses, []),
+      instructors: getValue(instructors, []),
+      blogPosts: getValue(blogPosts, []),
+      themeColors: getValue(themeColors, {}),
+      trialSettings: getValue(trialSettings, {}),
+      submissions: getValue(submissions, []),
+      pageContent: getValue(pageContent, null),
+      lookupLists: getValue(lookupLists, null),
+      customPages: getValue(customPagesResult, []),
+      menuItems: getValue(menuItemsResult, [])
     };
   } catch (error) {
     console.error('Error fetching app data:', error);
-    throw error;
+    // Return empty structure instead of throwing, so we don't lose existing data
+    return {
+      courses: [],
+      instructors: [],
+      blogPosts: [],
+      themeColors: {},
+      trialSettings: {},
+      submissions: [],
+      pageContent: null,
+      lookupLists: null
+    };
   }
 };
 

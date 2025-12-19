@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Routes, Route, useParams, useNavigate, Navigate, useLocation } from 'react-router-dom';
-import { Section, Course, AppData, ThemeColors, TrialSettings, Submission, BlogPost, Instructor } from './types';
+import { Section, Course, AppData, ThemeColors, TrialSettings, Submission, BlogPost, Instructor, CustomPage, MenuItem } from './types';
 import { INITIAL_DATA, ICONS } from './constants';
 import { LanguageProvider, useLanguage } from './components/LanguageContext';
 import { translations as initialTranslations } from './translations';
@@ -11,7 +11,14 @@ import {
   saveTrialSettings,
   getTranslations,
   saveTranslations,
-  savePageContent
+  savePageContent,
+  getLookupLists,
+  saveLookupLists,
+  saveCourse,
+  saveBlogPost,
+  saveInstructor,
+  saveCustomPages,
+  saveMenuItems
 } from './firebase/db.js';
 import FloatingShape from './components/FloatingShape';
 import CourseCard from './components/CourseCard';
@@ -38,9 +45,20 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
   const [db, setDb] = useState<{ en: AppData; zh: AppData }>(INITIAL_DATA);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Admin State
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Admin State - Check localStorage for persistent session
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('adminLoggedIn') === 'true';
+  });
   const isAdminRoute = location.pathname.startsWith('/adminbn');
+  
+  // Persist login state to localStorage
+  useEffect(() => {
+    if (isLoggedIn) {
+      localStorage.setItem('adminLoggedIn', 'true');
+    } else {
+      localStorage.removeItem('adminLoggedIn');
+    }
+  }, [isLoggedIn]);
 
   // Modal State
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -55,37 +73,51 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
           getAppData('zh')
         ]);
 
-        // Only update if we got data from Firestore
-        if (enData && zhData) {
-          setDb({
-            en: {
-              courses: enData.courses || [],
-              instructors: enData.instructors || [],
-              blogPosts: enData.blogPosts || [],
-              themeColors: enData.themeColors && Object.keys(enData.themeColors).length
-                ? enData.themeColors
-                : INITIAL_DATA.en.themeColors,
-              trialSettings: enData.trialSettings && Object.keys(enData.trialSettings).length
-                ? enData.trialSettings
-                : INITIAL_DATA.en.trialSettings,
-              submissions: enData.submissions || [],
-              pageContent: enData.pageContent || INITIAL_DATA.en.pageContent
-            },
-            zh: {
-              courses: zhData.courses || [],
-              instructors: zhData.instructors || [],
-              blogPosts: zhData.blogPosts || [],
-              themeColors: zhData.themeColors && Object.keys(zhData.themeColors).length
-                ? zhData.themeColors
-                : INITIAL_DATA.zh.themeColors,
-              trialSettings: zhData.trialSettings && Object.keys(zhData.trialSettings).length
-                ? zhData.trialSettings
-                : INITIAL_DATA.zh.trialSettings,
-              submissions: zhData.submissions || [],
-              pageContent: zhData.pageContent || INITIAL_DATA.zh.pageContent
-            }
-          });
-        }
+        // Normalize courses: ensure ageGroup is array and icon is string
+        const normalizeCourses = (courses: any[]) => {
+          if (!courses || !Array.isArray(courses)) return [];
+          return courses.map(course => ({
+            ...course,
+            ageGroup: Array.isArray(course.ageGroup) ? course.ageGroup : (course.ageGroup ? [course.ageGroup] : []),
+            icon: typeof course.icon === 'string' ? course.icon : 'coding'
+          }));
+        };
+        
+        // Always merge with existing data, never completely replace
+        setDb(prev => ({
+          en: {
+            courses: normalizeCourses(enData?.courses || prev.en.courses || []),
+            instructors: enData?.instructors || prev.en.instructors || [],
+            blogPosts: enData?.blogPosts || prev.en.blogPosts || [],
+            themeColors: (enData?.themeColors && Object.keys(enData.themeColors).length)
+              ? enData.themeColors
+              : (prev.en.themeColors || INITIAL_DATA.en.themeColors),
+            trialSettings: (enData?.trialSettings && Object.keys(enData.trialSettings).length)
+              ? enData.trialSettings
+              : (prev.en.trialSettings || INITIAL_DATA.en.trialSettings),
+            submissions: enData?.submissions || prev.en.submissions || [],
+            pageContent: enData?.pageContent || prev.en.pageContent || INITIAL_DATA.en.pageContent,
+            lookupLists: enData?.lookupLists || prev.en.lookupLists || INITIAL_DATA.en.lookupLists,
+            customPages: enData?.customPages || prev.en.customPages || [],
+            menuItems: enData?.menuItems || prev.en.menuItems || []
+          },
+          zh: {
+            courses: normalizeCourses(zhData?.courses || prev.zh.courses || []),
+            instructors: zhData?.instructors || prev.zh.instructors || [],
+            blogPosts: zhData?.blogPosts || prev.zh.blogPosts || [],
+            themeColors: (zhData?.themeColors && Object.keys(zhData.themeColors).length)
+              ? zhData.themeColors
+              : (prev.zh.themeColors || INITIAL_DATA.zh.themeColors),
+            trialSettings: (zhData?.trialSettings && Object.keys(zhData.trialSettings).length)
+              ? zhData.trialSettings
+              : (prev.zh.trialSettings || INITIAL_DATA.zh.trialSettings),
+            submissions: zhData?.submissions || prev.zh.submissions || [],
+            pageContent: zhData?.pageContent || prev.zh.pageContent || INITIAL_DATA.zh.pageContent,
+            lookupLists: zhData?.lookupLists || prev.zh.lookupLists || INITIAL_DATA.zh.lookupLists,
+            customPages: zhData?.customPages || prev.zh.customPages || [],
+            menuItems: zhData?.menuItems || prev.zh.menuItems || []
+          }
+        }));
       } catch (error) {
         console.error('Error loading data from Firestore:', error);
         // Fallback to INITIAL_DATA if Firestore fails
@@ -95,7 +127,7 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
     };
 
     loadData();
-  }, []); // Only run on mount
+  }, [language]); // Reload when language changes
 
   // Helper to get current data based on language
   const currentData = db[language];
@@ -117,25 +149,39 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
     root.style.setProperty('--color-brand-purple', colors.purple);
   }, [currentData.themeColors]);
 
-  const handleUpdateCourse = (course: Course) => {
-    setDb(prev => {
-        const langData = prev[language];
-        const exists = langData.courses.find(c => c.id === course.id);
-        const newCourses = exists 
-            ? langData.courses.map(c => c.id === course.id ? course : c)
-            : [...langData.courses, course];
-        
-        return {
-            ...prev,
-            [language]: {
-                ...langData,
-                courses: newCourses
-            }
-        };
-    });
+  const handleUpdateCourse = async (course: Course) => {
+    try {
+      // Persist to Firestore first
+      await saveCourse(course, language);
+      
+      // Then update local state
+      setDb(prev => {
+          const langData = prev[language];
+          const exists = langData.courses.find(c => c.id === course.id);
+          const newCourses = exists 
+              ? langData.courses.map(c => c.id === course.id ? course : c)
+              : [...langData.courses, course];
+          
+          return {
+              ...prev,
+              [language]: {
+                  ...langData,
+                  courses: newCourses
+              }
+          };
+      });
+    } catch (err) {
+      console.error('Error saving course:', err);
+      alert('Error saving course. Please try again.');
+    }
   };
 
-  const handleUpdateInstructor = (instructor: Instructor) => {
+  const handleUpdateInstructor = async (instructor: Instructor) => {
+    try {
+      // Persist to Firestore first
+      await saveInstructor(instructor, language);
+      
+      // Then update local state
       setDb(prev => {
         const langData = prev[language];
         const exists = langData.instructors.find(i => i.id === instructor.id);
@@ -150,17 +196,30 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
                 instructors: newInstructors
             }
         };
-    });
+      });
+    } catch (err) {
+      console.error('Error saving instructor:', err);
+      alert('Error saving instructor. Please try again.');
+    }
   };
 
-  const handleUpdateBlog = (updatedPosts: BlogPost[]) => {
-      setDb(prev => ({
-          ...prev,
-          [language]: {
-              ...prev[language],
-              blogPosts: updatedPosts
-          }
-      }));
+  const handleUpdateBlog = async (updatedPosts: BlogPost[]) => {
+      try {
+        // Save all posts to Firestore
+        await Promise.all(updatedPosts.map(post => saveBlogPost(post, language)));
+        
+        // Then update local state
+        setDb(prev => ({
+            ...prev,
+            [language]: {
+                ...prev[language],
+                blogPosts: updatedPosts
+            }
+        }));
+      } catch (err) {
+        console.error('Error saving blog posts:', err);
+        alert('Error saving blog posts. Please try again.');
+      }
   };
 
   const handleUpdateTheme = (colors: ThemeColors) => {
@@ -198,6 +257,57 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
       savePageContent(pageContent, language).catch(err => console.error('Error saving page content:', err));
   };
 
+  const handleUpdateLookupLists = (lookupLists: typeof INITIAL_DATA.en.lookupLists) => {
+      setDb(prev => ({
+          ...prev,
+          [language]: {
+              ...prev[language],
+              lookupLists
+          }
+      }));
+
+      // Persist lookup lists for current language
+      saveLookupLists(lookupLists, language).catch(err => console.error('Error saving lookup lists:', err));
+  };
+
+  const handleUpdateCustomPages = async (pages: CustomPage[]) => {
+      console.log('handleUpdateCustomPages called with', pages.length, 'pages');
+      setDb(prev => ({
+          ...prev,
+          [language]: {
+              ...prev[language],
+              customPages: pages
+          }
+      }));
+
+      try {
+          await saveCustomPages(pages, language);
+          alert('Custom pages saved successfully!');
+      } catch (err) {
+          console.error('Error saving custom pages:', err);
+          alert('Error saving custom pages: ' + (err instanceof Error ? err.message : String(err)));
+      }
+  };
+
+  const handleUpdateMenuItems = async (items: MenuItem[]) => {
+      console.log('handleUpdateMenuItems called with', items.length, 'items');
+      setDb(prev => ({
+          ...prev,
+          [language]: {
+              ...prev[language],
+              menuItems: items
+          }
+      }));
+
+      try {
+          await saveMenuItems(items, language);
+          // Don't show alert for every menu item change (it's called on blur)
+      } catch (err) {
+          console.error('Error saving menu items:', err);
+          alert('Error saving menu items: ' + (err instanceof Error ? err.message : String(err)));
+      }
+  };
+
   const handleSubmission = (data: Omit<Submission, 'id' | 'status'>) => {
     const newSubmission: Submission = {
       ...data,
@@ -228,6 +338,12 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
       if (!isLoggedIn) {
           return <AdminLogin onLogin={() => setIsLoggedIn(true)} />;
       }
+      
+      // Extract tab from URL (e.g., /adminbn/courses -> 'courses')
+      const urlTab = location.pathname.split('/')[2] || 'courses';
+      const validTabs = ['courses', 'blog', 'instructors', 'settings', 'inquiries', 'translations', 'homepage', 'lookups', 'pages', 'menu'];
+      const initialTab = validTabs.includes(urlTab) ? urlTab as typeof validTabs[number] : 'courses';
+      
       return (
           <CMSDashboard 
             courses={currentData.courses} 
@@ -238,6 +354,9 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
             submissions={currentData.submissions}
             translations={translations}
             pageContent={currentData.pageContent || INITIAL_DATA[language].pageContent}
+            lookupLists={currentData.lookupLists || INITIAL_DATA[language].lookupLists}
+            customPages={currentData.customPages || []}
+            menuItems={currentData.menuItems || []}
             onUpdateCourse={handleUpdateCourse}
             onUpdateInstructor={handleUpdateInstructor}
             onUpdateTheme={handleUpdateTheme}
@@ -245,13 +364,61 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
             onUpdateBlog={handleUpdateBlog}
             onUpdateTranslations={onUpdateTranslations}
             onUpdatePageContent={handleUpdatePageContent}
+            onUpdateLookupLists={handleUpdateLookupLists}
+            onUpdateCustomPages={handleUpdateCustomPages}
+            onUpdateMenuItems={handleUpdateMenuItems}
+            initialTab={initialTab}
             onLogout={() => { 
-              setIsLoggedIn(false); 
+              setIsLoggedIn(false);
+              localStorage.removeItem('adminLoggedIn');
               navigate('/'); 
             }}
           />
       );
   }
+
+  // Helper function to get background sizing classes and styles (shared across pages)
+  const getBackgroundStyles = (section: 'hero' | 'programs' | 'mentors' | 'gallery' | 'contact' | 'about', isVideo: boolean) => {
+    const pageContent = currentData.pageContent || INITIAL_DATA[language].pageContent;
+    const sizing = pageContent.backgroundSizing?.[section] || 'default';
+    
+    if (isVideo) {
+      switch (sizing) {
+        case 'width':
+          return { className: 'absolute inset-0 w-full h-auto object-contain opacity-10', style: {} };
+        case 'height':
+          return { className: 'absolute inset-0 h-full w-auto object-contain opacity-10', style: {} };
+        default:
+          return { className: 'absolute inset-0 w-full h-full object-cover opacity-10', style: {} };
+      }
+    } else {
+      switch (sizing) {
+        case 'width':
+          return { 
+            className: 'absolute inset-0 opacity-10',
+            style: { 
+              backgroundSize: '100% auto',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'left center'
+            }
+          };
+        case 'height':
+          return { 
+            className: 'absolute inset-0 opacity-10',
+            style: { 
+              backgroundSize: 'auto 100%',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center top'
+            }
+          };
+        default:
+          return { 
+            className: 'absolute inset-0 bg-cover bg-center opacity-10',
+            style: {}
+          };
+      }
+    }
+  };
 
   // Home Page Component
   const HomePage = () => {
@@ -272,7 +439,7 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
           {pageContent.backgrounds?.hero && (
             pageContent.backgrounds.hero.toLowerCase().endsWith('.mp4') ? (
               <video
-                className="absolute inset-0 w-full h-full object-cover -z-10"
+                {...getBackgroundStyles('hero', true)}
                 autoPlay
                 loop
                 muted
@@ -282,8 +449,8 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
               </video>
             ) : (
               <div
-                className="absolute inset-0 -z-10 bg-cover bg-center"
-                style={{ backgroundImage: `url(${pageContent.backgrounds.hero})` }}
+                {...getBackgroundStyles('hero', false)}
+                style={{ ...getBackgroundStyles('hero', false).style, backgroundImage: `url(${pageContent.backgrounds.hero})` }}
               />
             )
           )}
@@ -354,7 +521,7 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
           {pageContent.backgrounds?.programs && (
             pageContent.backgrounds.programs.toLowerCase().endsWith('.mp4') ? (
               <video
-                className="absolute inset-0 w-full h-full object-cover -z-10"
+                {...getBackgroundStyles('programs', true)}
                 autoPlay
                 loop
                 muted
@@ -364,8 +531,8 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
               </video>
             ) : (
               <div
-                className="absolute inset-0 -z-10 bg-cover bg-center opacity-80"
-                style={{ backgroundImage: `url(${pageContent.backgrounds.programs})` }}
+                {...getBackgroundStyles('programs', false)}
+                style={{ ...getBackgroundStyles('programs', false).style, backgroundImage: `url(${pageContent.backgrounds.programs})` }}
               />
             )
           )}
@@ -393,7 +560,7 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
           {pageContent.backgrounds?.mentors && (
             pageContent.backgrounds.mentors.toLowerCase().endsWith('.mp4') ? (
               <video
-                className="absolute inset-0 w-full h-full object-cover -z-10"
+                {...getBackgroundStyles('mentors', true)}
                 autoPlay
                 loop
                 muted
@@ -403,8 +570,8 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
               </video>
             ) : (
               <div
-                className="absolute inset-0 -z-10 bg-cover bg-center opacity-80"
-                style={{ backgroundImage: `url(${pageContent.backgrounds.mentors})` }}
+                {...getBackgroundStyles('mentors', false)}
+                style={{ ...getBackgroundStyles('mentors', false).style, backgroundImage: `url(${pageContent.backgrounds.mentors})` }}
               />
             )
           )}
@@ -416,23 +583,30 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {currentData.instructors.map((instructor, idx) => (
-                <motion.div 
-                  key={instructor.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.1 }}
-                  className="bg-white p-8 rounded-3xl shadow-md text-center group hover:shadow-2xl transition-all duration-300 border border-gray-100"
-                >
-                  <div className="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden border-4 border-brand-yellow group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <img src={instructor.imageUrl} alt={instructor.name} className="w-full h-full object-cover" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-1">{instructor.name}</h3>
-                  <p className="text-brand-blue font-bold text-sm mb-4 uppercase tracking-wide">{instructor.role}</p>
-                  <p className="text-gray-900 leading-relaxed">{instructor.bio}</p>
-                </motion.div>
-              ))}
+              {currentData.instructors && currentData.instructors.length > 0 ? (
+                currentData.instructors.map((instructor, idx) => (
+                  <motion.div 
+                    key={instructor.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: idx * 0.1 }}
+                    className="bg-white p-8 rounded-3xl shadow-md text-center group hover:shadow-2xl transition-all duration-300 border border-gray-100"
+                  >
+                    <div className="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden border-4 border-brand-yellow group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                      <img src={instructor.imageUrl} alt={instructor.name} className="w-full h-full object-cover" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-1">{instructor.name}</h3>
+                    <p className="text-brand-blue font-bold text-sm mb-4 uppercase tracking-wide">{instructor.role}</p>
+                    <p className="text-gray-900 leading-relaxed">{instructor.bio}</p>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="col-span-3 text-center py-12 text-gray-500">
+                  <p className="text-lg">No instructors available yet.</p>
+                  <p className="text-sm mt-2">Add instructors in the CMS to display them here.</p>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -443,7 +617,7 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
           {pageContent.backgrounds?.gallery && (
             pageContent.backgrounds.gallery.toLowerCase().endsWith('.mp4') ? (
               <video
-                className="absolute inset-0 w-full h-full object-cover -z-10"
+                {...getBackgroundStyles('gallery', true)}
                 autoPlay
                 loop
                 muted
@@ -453,8 +627,8 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
               </video>
             ) : (
               <div
-                className="absolute inset-0 -z-10 bg-cover bg-center opacity-80"
-                style={{ backgroundImage: `url(${pageContent.backgrounds.gallery})` }}
+                {...getBackgroundStyles('gallery', false)}
+                style={{ ...getBackgroundStyles('gallery', false).style, backgroundImage: `url(${pageContent.backgrounds.gallery})` }}
               />
             )
           )}
@@ -486,7 +660,7 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
           {pageContent.backgrounds?.contact && (
             pageContent.backgrounds.contact.toLowerCase().endsWith('.mp4') ? (
               <video
-                className="absolute inset-0 w-full h-full object-cover -z-10"
+                {...getBackgroundStyles('contact', true)}
                 autoPlay
                 loop
                 muted
@@ -496,8 +670,8 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
               </video>
             ) : (
               <div
-                className="absolute inset-0 -z-10 bg-cover bg-center opacity-80"
-                style={{ backgroundImage: `url(${pageContent.backgrounds.contact})` }}
+                {...getBackgroundStyles('contact', false)}
+                style={{ ...getBackgroundStyles('contact', false).style, backgroundImage: `url(${pageContent.backgrounds.contact})` }}
               />
             )
           )}
@@ -581,7 +755,10 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
 
   // Blog Page Component
   const BlogPage = () => (
-    <BlogList posts={currentData.blogPosts} />
+    <BlogList 
+      posts={currentData.blogPosts} 
+      categories={currentData.lookupLists?.blogCategories || []}
+    />
   );
 
   // Blog Post Detail Page Component
@@ -612,25 +789,32 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
             <h2 className="text-4xl font-display font-bold text-gray-900 mb-4">{pageContent.sections.mentors.heading}</h2>
             <p className="text-gray-900 text-lg">{pageContent.sections.mentors.subheading}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {currentData.instructors.map((instructor, idx) => (
-              <motion.div 
-                key={instructor.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                className="bg-white p-8 rounded-3xl shadow-md text-center group hover:shadow-2xl transition-all duration-300 border border-gray-100"
-              >
-                <div className="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden border-4 border-brand-yellow group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <img src={instructor.imageUrl} alt={instructor.name} className="w-full h-full object-cover" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {currentData.instructors && currentData.instructors.length > 0 ? (
+                currentData.instructors.map((instructor, idx) => (
+                  <motion.div 
+                    key={instructor.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: idx * 0.1 }}
+                    className="bg-white p-8 rounded-3xl shadow-md text-center group hover:shadow-2xl transition-all duration-300 border border-gray-100"
+                  >
+                    <div className="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden border-4 border-brand-yellow group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                      <img src={instructor.imageUrl} alt={instructor.name} className="w-full h-full object-cover" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-1">{instructor.name}</h3>
+                    <p className="text-brand-blue font-bold text-sm mb-4 uppercase tracking-wide">{instructor.role}</p>
+                    <p className="text-gray-900 leading-relaxed">{instructor.bio}</p>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="col-span-3 text-center py-12 text-gray-500">
+                  <p className="text-lg">No instructors available yet.</p>
+                  <p className="text-sm mt-2">Add instructors in the CMS to display them here.</p>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-1">{instructor.name}</h3>
-                <p className="text-brand-blue font-bold text-sm mb-4 uppercase tracking-wide">{instructor.role}</p>
-                <p className="text-gray-900 leading-relaxed">{instructor.bio}</p>
-              </motion.div>
-            ))}
-          </div>
+              )}
+            </div>
         </div>
       </div>
     );
@@ -659,6 +843,63 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
                 <img src={src} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
               </motion.div>
             ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // About Us Page Component
+  const AboutPage = () => {
+    const pageContent = currentData.pageContent || INITIAL_DATA[language].pageContent;
+    const aboutContent = pageContent.about || INITIAL_DATA[language].pageContent.about;
+    
+    return (
+      <div className="min-h-screen pt-24 pb-20 bg-slate-50 relative overflow-hidden">
+        {/* Optional About Background */}
+        {pageContent.backgrounds?.about && (
+          pageContent.backgrounds.about.toLowerCase().endsWith('.mp4') ? (
+            <video
+              {...getBackgroundStyles('about', true)}
+              autoPlay
+              loop
+              muted
+              playsInline
+            >
+              <source src={pageContent.backgrounds.about} type="video/mp4" />
+            </video>
+          ) : (
+            <div
+              {...getBackgroundStyles('about', false)}
+              style={{ ...getBackgroundStyles('about', false).style, backgroundImage: `url(${pageContent.backgrounds.about})` }}
+            />
+          )
+        )}
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-display font-bold text-gray-900 mb-4">{aboutContent?.heading}</h2>
+            <p className="text-gray-900 text-lg max-w-2xl mx-auto">{aboutContent?.subheading}</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            {aboutContent?.imageUrl && (
+              <div className="rounded-3xl overflow-hidden shadow-xl">
+                <img 
+                  src={aboutContent.imageUrl} 
+                  alt="About Us" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+            <div className={`bg-white p-8 rounded-3xl shadow-md ${aboutContent?.imageUrl ? '' : 'md:col-span-2'}`}>
+              {aboutContent?.content && (
+                <div 
+                  className="prose prose-lg max-w-none text-gray-800"
+                  dangerouslySetInnerHTML={{ __html: aboutContent.content }}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -718,6 +959,7 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
 
       <Layout 
         trialSettings={currentData.trialSettings}
+        logoUrl={(currentData.pageContent || INITIAL_DATA[language].pageContent).logo}
         onBookingClick={() => setIsBookingModalOpen(true)}
         onAdminClick={() => navigate('/adminbn')}
       >
@@ -729,7 +971,24 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
           <Route path="/blog/:id" element={<BlogPostDetailPage />} />
           <Route path="/instructors" element={<InstructorsPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          {/* Dynamic custom pages */}
+          {currentData.customPages?.map(page => (
+            <Route 
+              path={`/${page.slug}`} 
+              element={
+                <div className="min-h-screen bg-white">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                    <div 
+                      className="prose prose-lg max-w-none"
+                      dangerouslySetInnerHTML={{ __html: page.content }}
+                    />
+                  </div>
+                </div>
+              } 
+            />
+          ))}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>

@@ -22,9 +22,10 @@ export interface Attachment {
 export interface Course {
   id: string;
   title: string;
-  ageGroup: string;
+  ageGroup: string[]; // Multiple age groups
+  category: string;
   description: string;
-  fullDescription?: string; // Detailed description for the page
+  fullDescription?: string; // Detailed description for the page (HTML)
   icon: React.ReactNode;
   color: string;
   outline: string[];
@@ -48,8 +49,15 @@ export interface BlogPost {
   content: string; // HTML content
   date: string; // ISO Date string
   coverImage: string;
-  author: string;
   tags: string[];
+  category?: string; // Blog category from lookup list
+  layoutBlocks?: Array<{
+    id: string;
+    type: 'text-image' | 'text-only' | 'image-text' | 'image-carousel';
+    text: string;
+    imageUrl?: string;
+    images?: string[];
+  }>; // Optional layout blocks for advanced layouts
 }
 
 export interface ChatMessage {
@@ -65,6 +73,7 @@ export enum Section {
   INSTRUCTORS = 'instructors',
   GALLERY = 'gallery',
   CONTACT = 'contact',
+  ABOUT = 'about',
 }
 
 export interface ThemeColors {
@@ -121,6 +130,19 @@ export interface PageContent {
       email: string;
     };
   };
+  about?: {
+    heading: string;
+    subheading: string;
+    content: string; // HTML content
+    imageUrl?: string;
+    layoutBlocks?: Array<{
+      id: string;
+      type: 'text-image' | 'text-only' | 'image-text' | 'image-carousel';
+      text: string;
+      imageUrl?: string;
+      images?: string[];
+    }>; // Optional layout blocks for advanced layouts
+  };
   galleryImages: string[];
   backgrounds?: {
     hero?: string;
@@ -128,7 +150,48 @@ export interface PageContent {
     mentors?: string;
     gallery?: string;
     contact?: string;
+    about?: string;
   };
+  backgroundSizing?: {
+    hero?: 'default' | 'width' | 'height';
+    programs?: 'default' | 'width' | 'height';
+    mentors?: 'default' | 'width' | 'height';
+    gallery?: 'default' | 'width' | 'height';
+    contact?: 'default' | 'width' | 'height';
+    about?: 'default' | 'width' | 'height';
+  };
+  logo?: string;
+}
+
+export interface CustomPage {
+  id: string;
+  slug: string; // URL slug (e.g., 'our-story', 'services')
+  name: string; // Display name
+  content: string; // HTML content (generated from layout blocks)
+  layoutBlocks?: Array<{
+    id: string;
+    type: 'text-image' | 'text-only' | 'image-text' | 'image-carousel';
+    text: string;
+    imageUrl?: string;
+    images?: string[];
+  }>;
+  createdAt: string; // ISO Date string
+  updatedAt: string; // ISO Date string
+}
+
+export interface MenuItem {
+  id: string;
+  label: string; // Display text
+  type: 'page' | 'link' | 'custom'; // 'page' = CustomPage slug, 'link' = external URL, 'custom' = predefined route
+  target: string; // slug, URL, or route path
+  order: number; // Display order
+  visible: boolean; // Show/hide in menu
+}
+
+export interface LookupLists {
+  ageGroups: string[];
+  courseCategories: string[];
+  blogCategories: string[];
 }
 
 export interface AppData {
@@ -139,4 +202,7 @@ export interface AppData {
   trialSettings: TrialSettings;
   submissions: Submission[];
   pageContent?: PageContent;
+  lookupLists?: LookupLists;
+  customPages?: CustomPage[];
+  menuItems?: MenuItem[];
 }
