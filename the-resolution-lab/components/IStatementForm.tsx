@@ -1,14 +1,16 @@
 
 import React, { useState } from 'react';
 import { IStatement } from '../types';
-import { FEELING_TAGS, NEED_TAGS, CATEGORY_TAGS, COMMON_SCENARIOS } from '../constants';
+import { COMMON_SCENARIOS } from '../constants';
 import { geminiService } from '../services/geminiService';
+import { useResolutionTags } from '../hooks/useResolutionTags';
 
 interface Props {
   onComplete: (stmt: IStatement) => void;
 }
 
 const IStatementForm: React.FC<Props> = ({ onComplete }) => {
+  const { feelings, needs, categories } = useResolutionTags();
   const [form, setForm] = useState<IStatement>({
     feel: '',
     when: '',
@@ -56,7 +58,7 @@ const IStatementForm: React.FC<Props> = ({ onComplete }) => {
         <div className="space-y-2">
           <label className="text-sm font-semibold text-slate-600">This dispute relates to:</label>
           <div className="flex flex-wrap gap-2">
-            {CATEGORY_TAGS.map(tag => (
+            {categories.map(tag => (
               <button 
                 key={tag}
                 onClick={() => toggleCategory(tag)}
@@ -82,7 +84,7 @@ const IStatementForm: React.FC<Props> = ({ onComplete }) => {
             className="w-full border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none"
           />
           <div className="flex flex-wrap gap-2 pt-1">
-            {FEELING_TAGS.map(tag => (
+            {feelings.map(tag => (
               <button 
                 key={tag}
                 onClick={() => setForm({...form, feel: tag})}
@@ -131,7 +133,7 @@ const IStatementForm: React.FC<Props> = ({ onComplete }) => {
             className="w-full border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none"
           />
           <div className="flex flex-wrap gap-2 pt-1">
-            {NEED_TAGS.map(tag => (
+            {needs.map(tag => (
               <button 
                 key={tag}
                 onClick={() => setForm({...form, because: tag})}

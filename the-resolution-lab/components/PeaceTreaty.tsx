@@ -1,14 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
-import { AppState, NegotiatedAgreement } from '../types';
+import { AppState, NegotiatedAgreement, Partner } from '../types';
 import { geminiService } from '../services/geminiService';
+import { auth } from '../services/firebase';
+import { saveAgreementToFirestore } from '../services/resolutionService';
 
 interface Props {
   state: AppState;
   onArchive: (agreement: NegotiatedAgreement) => void;
+  pairId?: string | null;
 }
 
-const PeaceTreaty: React.FC<Props> = ({ state, onArchive }) => {
+const PeaceTreaty: React.FC<Props> = ({ state, onArchive, pairId = null }) => {
   const [loading, setLoading] = useState(true);
   const [treaty, setTreaty] = useState<any>(null);
 
@@ -82,15 +85,34 @@ const PeaceTreaty: React.FC<Props> = ({ state, onArchive }) => {
         </div>
 
         <button 
-          onClick={() => onArchive({
-            id: Math.random().toString(),
-            timestamp: new Date().toISOString(),
-            summary: state.partnerBSummary,
-            commitments: treaty?.commitments || [],
-            reviewDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-            participants: ['Partner A', 'Partner B'],
-            categories: state.iStatement?.categories || []
-          })}
+          onClick={async () => {
+            const agreement: NegotiatedAgreement = {
+              id: Math.random().toString(),
+              timestamp: new Date().toISOString(),
+              summary: state.partnerBSummary,
+              commitments: treaty?.commitments || [],
+              reviewDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+              participants: ['Partner A', 'Partner B'],
+              categories: state.iStatement?.categories || []
+            };
+
+            try {
+              const currentUser = auth.currentUser;
+              const partnerRole: Partner | 'Both' = state.activePartner || 'Partner A';
+              await saveAgreementToFirestore(
+                agreement,
+                {
+                  ownerUid: currentUser ? currentUser.uid : null,
+                  partnerRole: partnerRole === 'Partner A' || partnerRole === 'Partner B' ? partnerRole : 'Both',
+                  pairId
+                }
+              );
+            } catch (error) {
+              console.error('Failed to save agreement to Firestore', error);
+            }
+
+            onArchive(agreement);
+          }}
           className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-xl shadow-indigo-100 hover:bg-indigo-700"
         >
           Archive to The Vault

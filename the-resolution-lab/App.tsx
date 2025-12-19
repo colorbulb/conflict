@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { ResolutionPhase, AppState, Partner, Proposal } from './types';
+import React, { useState } from 'react';
+import { ResolutionPhase, AppState, Partner } from './types';
 import CoolingOff from './components/CoolingOff';
 import IStatementForm from './components/IStatementForm';
 import MirroringStep from './components/MirroringStep';
@@ -9,10 +9,15 @@ import PeaceTreaty from './components/PeaceTreaty';
 import Vault from './components/Vault';
 import { Icons } from './constants';
 
-const App: React.FC = () => {
+interface AppProps {
+  initialPartner?: Partner;
+  pairId?: string;
+}
+
+const App: React.FC<AppProps> = ({ initialPartner = 'Partner A', pairId }) => {
   const [state, setState] = useState<AppState>({
     currentPhase: ResolutionPhase.COOLING_OFF,
-    activePartner: 'Partner A',
+    activePartner: initialPartner,
     frustrationLevel: 0,
     iStatement: null,
     partnerBSummary: '',
@@ -46,7 +51,7 @@ const App: React.FC = () => {
       case ResolutionPhase.NEGOTIATION:
         return <NegotiationTable state={state} updateState={updateState} />;
       case ResolutionPhase.CONTRACT:
-        return <PeaceTreaty state={state} onArchive={(agreement) => {
+        return <PeaceTreaty state={state} pairId={pairId} onArchive={(agreement) => {
           updateState({ 
             vault: [agreement, ...state.vault], 
             currentPhase: ResolutionPhase.VAULT,
