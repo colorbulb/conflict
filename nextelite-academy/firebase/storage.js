@@ -131,3 +131,39 @@ export const uploadMultipleImages = async (files, folder = 'images') => {
   }
 };
 
+// Upload a PDF file to Firebase Storage
+export const uploadPDF = async (file, folder = 'attachments') => {
+  try {
+    if (!file.type.includes('pdf')) {
+      throw new Error('File must be a PDF');
+    }
+    // Generate unique filename
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 15);
+    const fileName = `${timestamp}_${randomStr}.pdf`;
+    const storageRef = ref(storage, `${folder}/${fileName}`);
+
+    // Upload file
+    const snapshot = await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+
+    return {
+      name: file.name,
+      size: formatFileSize(file.size),
+      url: downloadURL,
+    };
+  } catch (error) {
+    console.error('Error uploading PDF:', error);
+    throw error;
+  }
+};
+
+// Helper function to format file size
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+};
+

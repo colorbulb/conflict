@@ -9,11 +9,12 @@ import { Menu, X, Globe, UserCog } from 'lucide-react';
 interface LayoutProps {
   children: React.ReactNode;
   trialSettings: any;
+  logoUrl?: string;
   onBookingClick: () => void;
   onAdminClick: () => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, trialSettings, onBookingClick, onAdminClick }) => {
+const Layout: React.FC<LayoutProps> = ({ children, trialSettings, logoUrl, onBookingClick, onAdminClick }) => {
   const { language, setLanguage, t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const Layout: React.FC<LayoutProps> = ({ children, trialSettings, onBookingClick
     { label: t.nav[Section.BLOG], path: '/blog' },
     { label: t.nav[Section.INSTRUCTORS], path: '/instructors' },
     { label: t.nav[Section.GALLERY], path: '/gallery' },
+    { label: t.nav[Section.ABOUT], path: '/about' },
     { label: t.nav[Section.CONTACT], path: '/contact' },
   ];
 
@@ -39,8 +41,15 @@ const Layout: React.FC<LayoutProps> = ({ children, trialSettings, onBookingClick
           <div className="flex justify-between items-center h-20">
             <Link 
               to="/"
-              className="flex-shrink-0 flex items-center group"
+              className="flex-shrink-0 flex items-center gap-3 group"
             >
+              {logoUrl && (
+                <img 
+                  src={logoUrl} 
+                  alt="NextElite Academy Logo" 
+                  className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                />
+              )}
               <span className="text-3xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-orange to-brand-blue group-hover:scale-105 transition-transform duration-300 inline-block">
                 NextElite Academy
               </span>

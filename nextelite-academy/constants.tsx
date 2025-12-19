@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Brain, Cpu } from 'lucide-react';
+import { BookOpen, Brain, Cpu, GraduationCap, Code2, Users, Target, Lightbulb, Calculator, Globe, Music, Paintbrush, Gamepad2, FlaskConical, BookMarked, Languages, Sparkles, Rocket, Award, TrendingUp } from 'lucide-react';
 import { Course, Instructor, AppData, BlogPost, PageContent } from './types';
 
 // Icons need to be recreated in App logic or passed, but keeping them here for static ref is okay 
@@ -10,7 +10,60 @@ export const ICONS = {
   debate: <BookOpen className="w-8 h-8 text-white" />,
   logic: <Brain className="w-8 h-8 text-white" />,
   coding: <Cpu className="w-8 h-8 text-white" />,
+  graduation: <GraduationCap className="w-8 h-8 text-white" />,
+  code: <Code2 className="w-8 h-8 text-white" />,
+  users: <Users className="w-8 h-8 text-white" />,
+  target: <Target className="w-8 h-8 text-white" />,
+  lightbulb: <Lightbulb className="w-8 h-8 text-white" />,
+  calculator: <Calculator className="w-8 h-8 text-white" />,
+  globe: <Globe className="w-8 h-8 text-white" />,
+  music: <Music className="w-8 h-8 text-white" />,
+  paintbrush: <Paintbrush className="w-8 h-8 text-white" />,
+  gamepad: <Gamepad2 className="w-8 h-8 text-white" />,
+  flask: <FlaskConical className="w-8 h-8 text-white" />,
+  bookmarked: <BookMarked className="w-8 h-8 text-white" />,
+  languages: <Languages className="w-8 h-8 text-white" />,
+  sparkles: <Sparkles className="w-8 h-8 text-white" />,
+  rocket: <Rocket className="w-8 h-8 text-white" />,
+  award: <Award className="w-8 h-8 text-white" />,
+  trending: <TrendingUp className="w-8 h-8 text-white" />,
 };
+
+// Lookup lists for course management
+export const AGE_GROUPS = [
+  'Pre-K (Ages 3-5)',
+  'Kindergarten (Ages 5-6)',
+  'Primary 1-2 (Ages 6-8)',
+  'Primary 3-4 (Ages 8-10)',
+  'Primary 5-6 (Ages 10-12)',
+  'Primary 3 - Secondary 2',
+  'Secondary 1-2 (Ages 12-14)',
+  'Secondary 3-4 (Ages 14-16)',
+  'Secondary 5-6 (Ages 16-18)',
+  'All Ages',
+];
+
+export const COURSE_CATEGORIES = [
+  'Academic',
+  'Language & Communication',
+  'STEM',
+  'Arts & Creativity',
+  'Sports & Physical',
+  'Life Skills',
+  'Test Preparation',
+  'Competition Training',
+  'Other',
+];
+
+export const BLOG_CATEGORIES = [
+  'News',
+  'Achievements',
+  'Education',
+  'Tips & Advice',
+  'Events',
+  'Announcements',
+  'Other'
+];
 
 const DEFAULT_THEME = {
   yellow: '#BDD5EA', // Columbia Blue
@@ -59,6 +112,12 @@ const DEFAULT_PAGE_CONTENT_EN: PageContent = {
       email: 'hello@nextelite.edu',
     },
   },
+  about: {
+    heading: 'About NextElite Academy',
+    subheading: 'Empowering the next generation of leaders and thinkers',
+    content: '<p>NextElite Academy is dedicated to nurturing young minds through innovative educational programs that combine critical thinking, communication skills, and technological literacy.</p><p>Our mission is to prepare students for a rapidly evolving world by developing their analytical abilities, creative problem-solving skills, and confidence to express their ideas effectively.</p>',
+    imageUrl: '',
+  },
   galleryImages: [
     'https://picsum.photos/id/20/800/600',
     'https://picsum.photos/id/119/800/600',
@@ -74,6 +133,7 @@ const DEFAULT_PAGE_CONTENT_EN: PageContent = {
     gallery: '',
     contact: '',
   },
+  logo: '',
 };
 
 const DEFAULT_PAGE_CONTENT_ZH: PageContent = {
@@ -103,6 +163,12 @@ const DEFAULT_PAGE_CONTENT_ZH: PageContent = {
       email: 'hello@nextelite.edu',
     },
   },
+  about: {
+    heading: '關於 NextElite Academy',
+    subheading: '培養下一代領袖和思想家',
+    content: '<p>NextElite Academy 致力於通過創新的教育計劃培養年輕人的思維，結合批判性思考、溝通技巧和科技素養。</p><p>我們的使命是通過培養學生的分析能力、創造性解決問題的能力以及有效表達想法的信心，為快速發展的世界做好準備。</p>',
+    imageUrl: '',
+  },
   galleryImages: [
     'https://picsum.photos/id/20/800/600',
     'https://picsum.photos/id/119/800/600',
@@ -118,6 +184,7 @@ const DEFAULT_PAGE_CONTENT_ZH: PageContent = {
     gallery: '',
     contact: '',
   },
+  logo: '',
 };
 
 // Placeholder PDF URL for demo purposes
@@ -138,7 +205,6 @@ const INITIAL_BLOG_POSTS: BlogPost[] = [
     <p>The judges praised our team for their structured arguments and calm demeanor under pressure. A huge thank you to Coach Sarah Jenkins for her tireless dedication.</p>`,
     date: '2024-10-15',
     coverImage: 'https://picsum.photos/id/20/800/600',
-    author: 'Admin',
     tags: ['Achievements', 'Debate']
   },
   {
@@ -151,7 +217,6 @@ const INITIAL_BLOG_POSTS: BlogPost[] = [
     <p>Our Primary 1-3 curriculum integrates these puzzles to prepare students for the abstract concepts they will encounter in higher mathematics and coding.</p>`,
     date: '2024-09-28',
     coverImage: 'https://picsum.photos/id/227/800/600',
-    author: 'Dr. Alan Grant',
     tags: ['Education', 'Logic']
   }
 ];
@@ -163,11 +228,17 @@ export const INITIAL_DATA: { en: AppData; zh: AppData } = {
     submissions: [],
     blogPosts: INITIAL_BLOG_POSTS,
     pageContent: DEFAULT_PAGE_CONTENT_EN,
+    lookupLists: {
+      ageGroups: AGE_GROUPS,
+      courseCategories: COURSE_CATEGORIES,
+      blogCategories: BLOG_CATEGORIES
+    },
     courses: [
       {
         id: 'c1',
         title: 'English Debate & Public Speaking',
-        ageGroup: 'Primary 3 - Secondary 2',
+        ageGroup: ['Primary 3 - Secondary 2'],
+        category: 'Language & Communication',
         description: 'Empower your child to speak with confidence. We focus on argumentative structure, rebuttal techniques, and voice projection.',
         fullDescription: 'Our English Debate program is designed to transform shy students into confident speakers and articulate thinkers. Through a rigorous curriculum of parliamentary debate formats, impromptu speaking drills, and current affairs analysis, students learn to construct logical arguments, identify fallacies, and present with poise.',
         color: 'bg-brand-orange',
@@ -193,6 +264,7 @@ export const INITIAL_DATA: { en: AppData; zh: AppData } = {
         id: 'c2',
         title: 'Logical Thinking & Math Olympiad',
         ageGroup: 'Primary 1 - Primary 6',
+        category: 'STEM',
         description: 'Boost cognitive skills through puzzles, pattern recognition, and advanced arithmetic. Perfect for Math Olympiad preparation.',
         fullDescription: 'Logic is the foundation of all STEM fields. In this course, we move beyond rote memorization to explore the "why" and "how" of mathematics. Students engage in spatial reasoning games, number theory puzzles, and competitive math drills tailored for Olympiad success.',
         color: 'bg-brand-green',
@@ -236,7 +308,8 @@ export const INITIAL_DATA: { en: AppData; zh: AppData } = {
       {
         id: 'c3',
         title: 'AI Coding & Robotics',
-        ageGroup: 'Primary 4 - Secondary 4',
+        ageGroup: ['Primary 4 - Secondary 4'],
+        category: 'STEM',
         description: 'From Scratch to Python, and into the world of Machine Learning. Students build real apps and train their own AI models.',
         fullDescription: 'Prepare for the future with our comprehensive AI Coding curriculum. We start with visual block coding to grasp algorithmic thinking, then graduate to Python—the language of AI. Students will train simple machine learning models to recognize images and text.',
         color: 'bg-brand-blue',
@@ -308,6 +381,11 @@ export const INITIAL_DATA: { en: AppData; zh: AppData } = {
     trialSettings: DEFAULT_TRIAL_SETTINGS,
     submissions: [],
     pageContent: DEFAULT_PAGE_CONTENT_ZH,
+    lookupLists: {
+      ageGroups: AGE_GROUPS,
+      courseCategories: COURSE_CATEGORIES,
+      blogCategories: BLOG_CATEGORIES
+    },
     blogPosts: [
        {
         id: 'b1',
@@ -323,7 +401,6 @@ export const INITIAL_DATA: { en: AppData; zh: AppData } = {
         <p>評判稱讚我們的團隊在壓力下論點結構嚴謹，表現冷靜。非常感謝 Sarah Jenkins 教練的不懈努力。</p>`,
         date: '2024-10-15',
         coverImage: 'https://picsum.photos/id/20/800/600',
-        author: 'Admin',
         tags: ['成就', '辯論']
       },
       {
@@ -336,7 +413,6 @@ export const INITIAL_DATA: { en: AppData; zh: AppData } = {
         <p>我們的小一至小三課程整合了這些謎題，讓學生為將來的高等數學和編程中的抽象概念做好準備。</p>`,
         date: '2024-09-28',
         coverImage: 'https://picsum.photos/id/227/800/600',
-        author: 'Dr. Alan Grant',
         tags: ['教育', '邏輯']
       }
     ],
@@ -344,7 +420,8 @@ export const INITIAL_DATA: { en: AppData; zh: AppData } = {
       {
         id: 'c1',
         title: '英語辯論與演講',
-        ageGroup: '小三 至 中二',
+        ageGroup: ['小三 至 中二'],
+        category: 'Language & Communication',
         description: '讓孩子自信演講。我們專注於論點結構、反駁技巧和聲音投射。',
         fullDescription: '我們的英語辯論課程旨在將害羞的學生轉變為自信的演講者和思維清晰的思想家。通過嚴格的議會辯論形式課程、即興演講訓練和時事分析，學生學習構建邏輯論點，識別謬誤，並從容地展示自己。',
         color: 'bg-brand-orange',
@@ -369,7 +446,8 @@ export const INITIAL_DATA: { en: AppData; zh: AppData } = {
       {
         id: 'c2',
         title: '邏輯思維與奧數',
-        ageGroup: '小一 至 小六',
+        ageGroup: ['小一 至 小六'],
+        category: 'STEM',
         description: '通過謎題、模式識別和高級算術提升認知能力。非常適合奧數準備。',
         fullDescription: '邏輯是所有 STEM 領域的基礎。在本課程中，我們超越死記硬背，探索數學的"為什麼"和"如何"。學生參與空間推理遊戲、數論謎題和為奧數成功量身定制的競爭性數學訓練。',
         color: 'bg-brand-green',
@@ -413,7 +491,8 @@ export const INITIAL_DATA: { en: AppData; zh: AppData } = {
       {
         id: 'c3',
         title: 'AI 編程與機械人',
-        ageGroup: '小四 至 中四',
+        ageGroup: ['小四 至 中四'],
+        category: 'STEM',
         description: '從 Scratch 到 Python，進入機器學習的世界。學生建立真實的應用程序並訓練他們自己的 AI 模型。',
         fullDescription: '通過我們全面的 AI 編程課程為未來做好準備。我們從視覺積木編程開始，掌握算法思維，然後升級到 Python——AI 的語言。學生將訓練簡單的機器學習模型來識別圖像和文本。',
         color: 'bg-brand-blue',

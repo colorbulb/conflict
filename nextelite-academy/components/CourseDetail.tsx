@@ -16,6 +16,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll })
   const { t } = useLanguage();
   const [viewingPdf, setViewingPdf] = useState<string | null>(null);
   const [viewingPdfTitle, setViewingPdfTitle] = useState<string>('');
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   const handleOpenPdf = (url: string, title: string) => {
     setViewingPdf(url);
@@ -54,9 +55,22 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll })
              </div>
            </div>
            <div className="relative z-10 max-w-3xl">
-             <span className="inline-block bg-white/20 px-4 py-1 rounded-full text-sm font-bold mb-4 backdrop-blur-md">
-                {course.ageGroup}
-             </span>
+             <div className="flex flex-wrap gap-2 mb-4">
+               {Array.isArray(course.ageGroup) ? course.ageGroup.map((age, idx) => (
+                 <span key={idx} className="inline-block bg-white/20 px-4 py-1 rounded-full text-sm font-bold backdrop-blur-md">
+                   {age}
+                 </span>
+               )) : (
+                 <span className="inline-block bg-white/20 px-4 py-1 rounded-full text-sm font-bold backdrop-blur-md">
+                   {course.ageGroup}
+                 </span>
+               )}
+               {course.category && (
+                 <span className="inline-block bg-white/20 px-4 py-1 rounded-full text-sm font-bold backdrop-blur-md">
+                   {course.category}
+                 </span>
+               )}
+             </div>
              <h1 className="text-4xl md:text-6xl font-display font-bold mb-6">{course.title}</h1>
              <p className="text-lg md:text-xl opacity-90 leading-relaxed mb-8">
                {course.description}
@@ -77,9 +91,16 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll })
             {/* Overview */}
             <section className="bg-white p-8 rounded-3xl shadow-sm">
                <h2 className="text-2xl font-display font-bold text-gray-800 mb-4">{t.course.overview}</h2>
-               <p className="text-gray-800 leading-relaxed mb-6">
-                 {course.fullDescription || course.description}
-               </p>
+               {course.fullDescription ? (
+                 <div 
+                   className="text-gray-800 leading-relaxed mb-6 prose prose-sm max-w-none prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg"
+                   dangerouslySetInnerHTML={{ __html: course.fullDescription }}
+                 />
+               ) : (
+                 <p className="text-gray-800 leading-relaxed mb-6">
+                   {course.description}
+                 </p>
+               )}
                
                <h3 className="font-bold text-gray-900 mb-4 text-lg">{t.course.whatToLearn}</h3>
                <ul className="space-y-3">
@@ -93,12 +114,18 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll })
             </section>
 
             {/* Gallery */}
-            {course.galleryImages && (
+            {course.galleryImages && course.galleryImages.length > 0 && (
               <section>
                 <h2 className="text-2xl font-display font-bold text-gray-800 mb-6">{t.course.gallery}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {course.galleryImages.map((img, idx) => (
-                    <img key={idx} src={img} alt={`Class ${idx}`} className="rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 w-full h-48 object-cover" />
+                    <img 
+                      key={idx} 
+                      src={img} 
+                      alt={`Class ${idx}`} 
+                      className="rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 w-full h-48 object-cover cursor-pointer"
+                      onClick={() => setLightboxImage(img)}
+                    />
                   ))}
                 </div>
               </section>

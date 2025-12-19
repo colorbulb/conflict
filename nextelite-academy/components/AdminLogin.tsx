@@ -13,6 +13,8 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (username === 'admin' && password === 'adminpw') {
+      // Save login state to localStorage for persistence
+      localStorage.setItem('adminLoggedIn', 'true');
       onLogin();
     } else {
       setError('Invalid credentials');

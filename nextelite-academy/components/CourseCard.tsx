@@ -31,9 +31,17 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onViewDetails }) => {
       </div>
       
       <div className="p-6 flex-grow flex flex-col">
-        <span className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-semibold mb-4 w-fit">
-          {course.ageGroup}
-        </span>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {Array.isArray(course.ageGroup) ? course.ageGroup.map((age, idx) => (
+            <span key={idx} className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-semibold">
+              {age}
+            </span>
+          )) : (
+            <span className="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-semibold">
+              {course.ageGroup}
+            </span>
+          )}
+        </div>
         <p className="text-gray-700 mb-6 leading-relaxed">
           {course.description}
         </p>

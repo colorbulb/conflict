@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { BlogPost } from '../types';
-import { ArrowLeft, Calendar, User, Share2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Share2 } from 'lucide-react';
 import { useLanguage } from './LanguageContext';
 
 interface BlogPostDetailProps {
@@ -45,9 +45,8 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({ post, onBack }) => {
                     ))}
                  </div>
                  <h1 className="text-3xl md:text-5xl font-display font-bold text-white mb-4 leading-tight">{post.title}</h1>
-                 <div className="flex items-center text-white/90 text-sm space-x-6">
+                 <div className="flex items-center text-white/90 text-sm">
                     <span className="flex items-center"><Calendar className="w-4 h-4 mr-2" /> {new Date(post.date).toLocaleDateString()}</span>
-                    <span className="flex items-center"><User className="w-4 h-4 mr-2" /> {post.author}</span>
                  </div>
                </div>
             </div>

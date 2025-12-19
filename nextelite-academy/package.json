@@ -8,7 +8,6 @@
     "build": "vite build",
     "preview": "vite preview",
     "import:firebase": "node firebase/importWithServiceAccount.js",
-    "deploy": "bash deploy.sh || deploy.bat",
     "deploy": "bash deploy.sh || deploy.bat"
   },
   "dependencies": {
