@@ -123,6 +123,19 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
   const currentMenuItems = menuEditingLang === 'en' ? localEnMenuItems : localZhMenuItems;
   const setCurrentMenuItems = menuEditingLang === 'en' ? setLocalEnMenuItems : setLocalZhMenuItems;
 
+  // Save menu items handler
+  const handleSaveMenuItems = async () => {
+    if (onUpdateMenuItems) {
+      try {
+        await onUpdateMenuItems(currentMenuItems, menuEditingLang);
+        alert(`Menu items saved successfully for ${menuEditingLang === 'en' ? 'English' : '繁體中文'}!`);
+      } catch (err) {
+        console.error('Error saving menu items:', err);
+        alert('Error saving menu items. Please try again.');
+      }
+    }
+  };
+
   useEffect(() => {
       setLocalTranslations(translations);
   }, [translations]);
@@ -2655,11 +2668,11 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                       <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 3h7m0 0v7m0-7L10 14m-7 7h7a2 2 0 002-2v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7a2 2 0 002 2z" /></svg>
                                     </a>
                                     <button 
-                                        onClick={() => {
+                                        onClick={async () => {
                                             if (confirm('Delete this page?')) {
                                                 const newPages = localCustomPages.filter(p => p.id !== page.id);
                                                 setLocalCustomPages(newPages);
-                                                if (onUpdateCustomPages) onUpdateCustomPages(newPages);
+                                                if (onUpdateCustomPages) await onUpdateCustomPages(newPages);
                                             }
                                         }}
                                         className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
@@ -2675,7 +2688,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                     <CustomPageEditor
                         editingPage={editingPage}
                         setEditingPage={setEditingPage}
-                        onSave={(page) => {
+                        onSave={async (page) => {
                             const isNew = !localCustomPages.find(p => p.id === page.id);
                             let newPages = [...localCustomPages];
                             if (isNew) {
@@ -2684,7 +2697,9 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                 newPages = newPages.map(p => p.id === page.id ? page : p);
                             }
                             setLocalCustomPages(newPages);
-                            if (onUpdateCustomPages) onUpdateCustomPages(newPages);
+                            if (onUpdateCustomPages) {
+                                await onUpdateCustomPages(newPages);
+                            }
                             setEditingPage(null);
                         }}
                         currentCustomPages={localCustomPages}
@@ -3002,6 +3017,14 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                         className="mt-4 bg-brand-blue text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-600"
                     >
                         <Plus className="w-4 h-4" /> Add Menu Item
+                    </button>
+                    
+                    {/* Save Menu Button */}
+                    <button
+                        onClick={handleSaveMenuItems}
+                        className="mt-4 w-full bg-brand-green text-white py-4 rounded-xl font-bold hover:bg-green-600 flex justify-center items-center gap-2 shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1"
+                    >
+                        <Save className="w-5 h-5" /> Save Menu Changes
                     </button>
                 </div>
             </div>
@@ -3433,4 +3456,4 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
   );
 };
 
-export default CMSDashboard;    
+export default CMSDashboard;

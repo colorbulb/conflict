@@ -5,13 +5,14 @@ import { CustomPage, CustomPageTranslation } from '../../types';
 interface CustomPageEditorProps {
   editingPage: CustomPage | null;
   setEditingPage: (page: CustomPage | null) => void;
-  onSave: (page: CustomPage) => void;
+  onSave: (page: CustomPage) => Promise<void>;
   currentCustomPages: CustomPage[];
 }
 
 const CustomPageEditor: React.FC<CustomPageEditorProps> = ({ editingPage, setEditingPage, onSave, currentCustomPages }) => {
   const [activeLang, setActiveLang] = React.useState<'en' | 'zh'>('en');
   const [useLayout, setUseLayout] = React.useState<boolean>(false);
+  const [isSaving, setIsSaving] = React.useState<boolean>(false);
   if (!editingPage) return null;
   const translation = editingPage.translations[activeLang];
   React.useEffect(() => {
@@ -143,21 +144,37 @@ const CustomPageEditor: React.FC<CustomPageEditorProps> = ({ editingPage, setEdi
         )}
       </div>
       <div className="flex gap-2 justify-end mt-6">
-        <button onClick={() => setEditingPage(null)} className="px-4 py-2 rounded bg-gray-200 text-gray-700 font-bold">Cancel</button>
+        <button 
+          onClick={() => setEditingPage(null)} 
+          className="px-4 py-2 rounded bg-gray-200 text-gray-700 font-bold"
+          disabled={isSaving}
+        >
+          Cancel
+        </button>
         <button
-          onClick={() => {
+          onClick={async () => {
             const pageToSave = { ...editingPage, updatedAt: new Date().toISOString() };
             console.log('[CustomPageEditor] Attempting to save custom page:', pageToSave);
+            setIsSaving(true);
             try {
-              onSave(pageToSave);
-              console.log('[CustomPageEditor] onSave called successfully for:', pageToSave.slug || pageToSave.id);
+              await onSave(pageToSave);
+              console.log('[CustomPageEditor] onSave completed successfully for:', pageToSave.slug || pageToSave.id);
             } catch (error) {
               console.error('[CustomPageEditor] Error in onSave:', error, pageToSave);
+              setIsSaving(false);
             }
           }}
-          className="px-6 py-2 rounded bg-brand-blue text-white font-bold"
+          className="px-6 py-2 rounded bg-brand-blue text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          disabled={isSaving}
         >
-          Save
+          {isSaving ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Saving...
+            </>
+          ) : (
+            'Save'
+          )}
         </button>
       </div>
     </div>
