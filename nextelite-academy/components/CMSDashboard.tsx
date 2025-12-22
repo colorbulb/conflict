@@ -2645,6 +2645,15 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                     <button onClick={() => setEditingPage(page)} className="text-blue-500 hover:bg-blue-50 p-1.5 rounded-lg transition-colors">
                                         <Edit className="w-4 h-4" />
                                     </button>
+                                    <a
+                                      href={`/${page.slug}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-green-500 hover:bg-green-50 p-1.5 rounded-lg transition-colors flex items-center"
+                                      title="Open public page"
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 3h7m0 0v7m0-7L10 14m-7 7h7a2 2 0 002-2v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7a2 2 0 002 2z" /></svg>
+                                    </a>
                                     <button 
                                         onClick={() => {
                                             if (confirm('Delete this page?')) {
