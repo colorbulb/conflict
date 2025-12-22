@@ -427,18 +427,25 @@ export const saveCustomPages = async (pages) => {
   try {
     console.log(`Saving ${pages.length} custom pages (unified translations)`);
     const batch = writeBatch(db);
-    // Delete all existing pages
-    const existing = await getDocs(collection(db, 'custom_pages'));
-    console.log(`Deleting ${existing.docs.length} existing pages`);
-    existing.docs.forEach(doc => batch.delete(doc.ref));
-    // Add new pages - deep-clean to remove undefined / non-serializable values
+    // Delete all existing pages in en_pages and zh_pages
+    const existingEn = await getDocs(collection(db, 'en_pages'));
+    const existingZh = await getDocs(collection(db, 'zh_pages'));
+    console.log(`Deleting ${existingEn.docs.length} en_pages and ${existingZh.docs.length} zh_pages`);
+    existingEn.docs.forEach(doc => batch.delete(doc.ref));
+    existingZh.docs.forEach(doc => batch.delete(doc.ref));
+    // Add new pages to both en_pages and zh_pages
     pages.forEach(page => {
-      const ref = doc(db, 'custom_pages', page.id);
-      const cleanPage = cleanObject(page);
-      batch.set(ref, cleanPage);
+      // English
+      const enRef = doc(db, 'en_pages', page.id);
+      const enData = { ...page.translations.en, id: page.id, slug: page.slug, createdAt: page.createdAt, updatedAt: page.updatedAt };
+      batch.set(enRef, cleanObject(enData));
+      // Traditional Chinese
+      const zhRef = doc(db, 'zh_pages', page.id);
+      const zhData = { ...page.translations.zh, id: page.id, slug: page.slug, createdAt: page.createdAt, updatedAt: page.updatedAt };
+      batch.set(zhRef, cleanObject(zhData));
     });
     await batch.commit();
-    console.log(`Successfully saved ${pages.length} custom pages`);
+    console.log(`Successfully saved ${pages.length} custom pages to en_pages and zh_pages`);
   } catch (error) {
     console.error('Error saving custom pages:', error);
     throw error;
