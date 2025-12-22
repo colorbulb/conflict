@@ -85,14 +85,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
         setLocalCustomPages(customPages);
     }, [customPages]);
   
-  // Update local custom pages when props change
-  useEffect(() => {
-    setLocalEnCustomPages(enCustomPages);
-  }, [enCustomPages]);
-  
-  useEffect(() => {
-    setLocalZhCustomPages(zhCustomPages);
-  }, [zhCustomPages]);
+    // Removed undefined setLocalEnCustomPages and setLocalZhCustomPages
   
   // Get current custom pages based on editing language
     const currentCustomPages = localCustomPages;
@@ -2925,21 +2918,40 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                                         <option value="link">Link (External URL)</option>
                                                         <option value="custom">Custom Route</option>
                                                     </select>
-                                                    <input
-                                                        type="text"
-                                                        value={item.target}
-                                                        onChange={(e) => {
-                                                            const newItems = currentMenuItems.map(i => 
-                                                                i.id === item.id ? { ...i, target: e.target.value } : i
-                                                            );
-                                                            setCurrentMenuItems(newItems);
-                                                        }}
-                                                        onBlur={() => {
-                                                            if (onUpdateMenuItems) onUpdateMenuItems(currentMenuItems, menuEditingLang);
-                                                        }}
-                                                        className="flex-1 border rounded px-2 py-1 text-xs font-mono"
-                                                        placeholder={item.type === 'page' ? 'page-slug' : item.type === 'link' ? 'https://...' : '/route'}
-                                                    />
+                                                    {item.type === 'page' ? (
+                                                        <select
+                                                            value={item.target}
+                                                            onChange={e => {
+                                                                const newItems = currentMenuItems.map(i =>
+                                                                    i.id === item.id ? { ...i, target: e.target.value } : i
+                                                                );
+                                                                setCurrentMenuItems(newItems);
+                                                                if (onUpdateMenuItems) onUpdateMenuItems(newItems, menuEditingLang);
+                                                            }}
+                                                            className="flex-1 border rounded px-2 py-1 text-xs font-mono bg-white"
+                                                        >
+                                                            <option value="">Select a page slug...</option>
+                                                            {currentCustomPages.map(page => (
+                                                                <option key={page.slug} value={page.slug}>{page.slug}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : (
+                                                        <input
+                                                            type="text"
+                                                            value={item.target}
+                                                            onChange={(e) => {
+                                                                const newItems = currentMenuItems.map(i => 
+                                                                    i.id === item.id ? { ...i, target: e.target.value } : i
+                                                                );
+                                                                setCurrentMenuItems(newItems);
+                                                            }}
+                                                            onBlur={() => {
+                                                                if (onUpdateMenuItems) onUpdateMenuItems(currentMenuItems, menuEditingLang);
+                                                            }}
+                                                            className="flex-1 border rounded px-2 py-1 text-xs font-mono"
+                                                            placeholder={item.type === 'link' ? 'https://...' : '/route'}
+                                                        />
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="flex flex-col gap-2">
