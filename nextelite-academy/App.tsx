@@ -1,4 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+// Debug wrapper for custom page route
+const CustomPageDebugWrapper: React.FC<{ page: any }> = ({ page }) => {
+  const location = useLocation();
+  useEffect(() => {
+    console.log('[CustomPageDebug] Current path:', location.pathname);
+    console.log('[CustomPageDebug] Page slug:', page.slug);
+    console.log('[CustomPageDebug] Page content:', page.content);
+  }, [location, page]);
+  return (
+    <div className="min-h-screen pt-24 pb-20 bg-slate-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div 
+          className="prose prose-lg max-w-none bg-white rounded-3xl shadow-sm p-8"
+          dangerouslySetInnerHTML={{ __html: page.content }}
+        />
+      </div>
+    </div>
+  );
+};
 import { motion } from 'framer-motion';
 import { Routes, Route, useParams, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { Section, Course, AppData, ThemeColors, TrialSettings, Submission, BlogPost, Instructor, CustomPage, MenuItem } from './types';
@@ -994,21 +1014,20 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           {/* Dynamic custom pages */}
-          {currentData.customPages?.map(page => (
-            <Route 
-              path={`/${page.slug}`} 
-              element={
-                <div className="min-h-screen pt-24 pb-20 bg-slate-50">
-                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div 
-                      className="prose prose-lg max-w-none bg-white rounded-3xl shadow-sm p-8"
-                      dangerouslySetInnerHTML={{ __html: page.content }}
-                    />
-                  </div>
-                </div>
-              } 
-            />
-          ))}
+          {(() => {
+            console.log('[CustomPageRoute] customPages:', currentData.customPages);
+            return currentData.customPages?.map(page => {
+              const routePath = `/${page.slug}`;
+              console.log('[CustomPageRoute] Registering route:', routePath);
+              return (
+                <Route 
+                  key={routePath}
+                  path={routePath}
+                  element={<CustomPageDebugWrapper page={page} />}
+                />
+              );
+            });
+          })()}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>
