@@ -43,6 +43,12 @@ export const AGE_GROUPS = [
   'All Ages',
 ];
 
+export const DIFFICULTY_LEVELS = [
+  'Beginner',
+  'Intermediate',
+  'Advanced',
+];
+
 export const COURSE_CATEGORIES = [
   'Academic',
   'Language & Communication',
@@ -231,7 +237,8 @@ export const INITIAL_DATA: { en: AppData; zh: AppData } = {
     lookupLists: {
       ageGroups: AGE_GROUPS,
       courseCategories: COURSE_CATEGORIES,
-      blogCategories: BLOG_CATEGORIES
+      blogCategories: BLOG_CATEGORIES,
+      difficulties: DIFFICULTY_LEVELS,
     },
     courses: [
       {
@@ -384,7 +391,8 @@ export const INITIAL_DATA: { en: AppData; zh: AppData } = {
     lookupLists: {
       ageGroups: AGE_GROUPS,
       courseCategories: COURSE_CATEGORIES,
-      blogCategories: BLOG_CATEGORIES
+      blogCategories: BLOG_CATEGORIES,
+      difficulties: DIFFICULTY_LEVELS,
     },
     blogPosts: [
        {

@@ -221,9 +221,15 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, courses, o
                                   required
                                   type="tel"
                                   value={formData.phone}
-                                  onChange={e => setFormData({...formData, phone: e.target.value})}
+                                  onChange={e => {
+                                    // Only allow numbers
+                                    const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                                    setFormData({...formData, phone: numericValue});
+                                  }}
                                   className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-brand-blue outline-none"
+                                  placeholder="12345678"
                                 />
+                                <p className="text-xs text-gray-500 mt-1">Numbers only</p>
                              </div>
                          </div>
 

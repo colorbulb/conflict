@@ -18,7 +18,8 @@ import {
   saveBlogPost,
   saveInstructor,
   saveCustomPages,
-  saveMenuItems
+  saveMenuItems,
+  saveSubmission
 } from './firebase/db.js';
 import FloatingShape from './components/FloatingShape';
 import CourseCard from './components/CourseCard';
@@ -271,36 +272,39 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
   };
 
   const handleUpdateCustomPages = async (pages: CustomPage[]) => {
-      console.log('handleUpdateCustomPages called with', pages.length, 'pages');
-      setDb(prev => ({
-          ...prev,
-          [language]: {
-              ...prev[language],
-              customPages: pages
-          }
-      }));
-
-      try {
-          await saveCustomPages(pages, language);
-          alert('Custom pages saved successfully!');
-      } catch (err) {
-          console.error('Error saving custom pages:', err);
-          alert('Error saving custom pages: ' + (err instanceof Error ? err.message : String(err)));
+    setDb(prev => ({
+      ...prev,
+      en: {
+        ...prev.en,
+        customPages: pages
+      },
+      zh: {
+        ...prev.zh,
+        customPages: pages
       }
+    }));
+    try {
+      await saveCustomPages(pages);
+      alert('Custom pages saved successfully!');
+    } catch (err) {
+      console.error('Error saving custom pages:', err);
+      alert('Error saving custom pages: ' + (err instanceof Error ? err.message : String(err)));
+    }
   };
 
-  const handleUpdateMenuItems = async (items: MenuItem[]) => {
-      console.log('handleUpdateMenuItems called with', items.length, 'items');
+  const handleUpdateMenuItems = async (items: MenuItem[], lang?: 'en' | 'zh') => {
+      const targetLang = lang || language;
+      console.log('handleUpdateMenuItems called with', items.length, 'items for language:', targetLang);
       setDb(prev => ({
           ...prev,
-          [language]: {
-              ...prev[language],
+          [targetLang]: {
+              ...prev[targetLang],
               menuItems: items
           }
       }));
 
       try {
-          await saveMenuItems(items, language);
+          await saveMenuItems(items, targetLang);
           // Don't show alert for every menu item change (it's called on blur)
       } catch (err) {
           console.error('Error saving menu items:', err);
@@ -308,13 +312,26 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
       }
   };
 
-  const handleSubmission = (data: Omit<Submission, 'id' | 'status'>) => {
+  const handleSubmission = async (data: Omit<Submission, 'id' | 'status'>) => {
     const newSubmission: Submission = {
       ...data,
       id: Math.random().toString(36).substr(2, 9),
       status: 'new'
     };
 
+    // Save to Firestore for both languages
+    try {
+      await Promise.all([
+        saveSubmission(newSubmission, 'en'),
+        saveSubmission(newSubmission, 'zh')
+      ]);
+    } catch (error) {
+      console.error('Error saving submission:', error);
+      alert('Error saving submission. Please try again.');
+      return;
+    }
+
+    // Update local state
     setDb(prev => ({
       en: { ...prev.en, submissions: [newSubmission, ...prev.en.submissions] },
       zh: { ...prev.zh, submissions: [newSubmission, ...prev.zh.submissions] }
@@ -341,7 +358,7 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
       
       // Extract tab from URL (e.g., /adminbn/courses -> 'courses')
       const urlTab = location.pathname.split('/')[2] || 'courses';
-      const validTabs = ['courses', 'blog', 'instructors', 'settings', 'inquiries', 'translations', 'homepage', 'lookups', 'pages', 'menu'];
+      const validTabs = ['courses', 'blog', 'instructors', 'settings', 'inquiries', 'homepage', 'lookups', 'pages', 'menu'];
       const initialTab = validTabs.includes(urlTab) ? urlTab as typeof validTabs[number] : 'courses';
       
       return (
@@ -357,6 +374,8 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
             lookupLists={currentData.lookupLists || INITIAL_DATA[language].lookupLists}
             customPages={currentData.customPages || []}
             menuItems={currentData.menuItems || []}
+            enMenuItems={db.en.menuItems || []}
+            zhMenuItems={db.zh.menuItems || []}
             onUpdateCourse={handleUpdateCourse}
             onUpdateInstructor={handleUpdateInstructor}
             onUpdateTheme={handleUpdateTheme}
@@ -960,6 +979,7 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
       <Layout 
         trialSettings={currentData.trialSettings}
         logoUrl={(currentData.pageContent || INITIAL_DATA[language].pageContent).logo}
+        menuItems={currentData.menuItems || []}
         onBookingClick={() => setIsBookingModalOpen(true)}
         onAdminClick={() => navigate('/adminbn')}
       >
@@ -978,10 +998,10 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
             <Route 
               path={`/${page.slug}`} 
               element={
-                <div className="min-h-screen bg-white">
-                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div className="min-h-screen pt-24 pb-20 bg-slate-50">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div 
-                      className="prose prose-lg max-w-none"
+                      className="prose prose-lg max-w-none bg-white rounded-3xl shadow-sm p-8"
                       dangerouslySetInnerHTML={{ __html: page.content }}
                     />
                   </div>

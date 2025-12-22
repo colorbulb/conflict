@@ -53,7 +53,9 @@ export const saveCourse = async (course, lang = 'en') => {
     const courseData = {
       ...course,
       icon: typeof course.icon === 'string' ? course.icon : 'coding', // Always save as string
-      ageGroup: Array.isArray(course.ageGroup) ? course.ageGroup : (course.ageGroup ? [course.ageGroup] : []) // Ensure array
+      ageGroup: Array.isArray(course.ageGroup) ? course.ageGroup : (course.ageGroup ? [course.ageGroup] : []), // Ensure array
+      headerBackgroundImage: course.headerBackgroundImage || null,
+      headerBackgroundOpacity: course.headerBackgroundOpacity !== undefined ? course.headerBackgroundOpacity : 0.2
     };
     
     // Remove ReactNode icon if present (can't serialize to Firestore)
@@ -260,12 +262,13 @@ export const getSubmissions = async (lang = 'en') => {
   }
 };
 
+import { Timestamp } from './timestamp.js';
 export const saveSubmission = async (submission, lang = 'en') => {
   try {
     const { id, ...submissionData } = submission;
     const docRef = await addDoc(collection(db, getLangCollection(COLLECTIONS.SUBMISSIONS, lang)), {
       ...submissionData,
-      timestamp: submission.timestamp || new Date()
+      timestamp: submission.timestamp && submission.timestamp.toDate ? submission.timestamp : Timestamp.now()
     });
     return docRef.id;
   } catch (error) {
@@ -392,33 +395,52 @@ export const initializeFirestore = async (initialData) => {
 };
 
 // ===== CUSTOM PAGES =====
-export const getCustomPages = async (lang = 'en') => {
+// Unified custom pages (translations in one doc)
+export const getCustomPages = async () => {
   try {
-    const snapshot = await getDocs(collection(db, `${lang}_pages`));
+    const snapshot = await getDocs(collection(db, 'custom_pages'));
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
-    console.error(`Error fetching custom pages (${lang}):`, error);
+    console.error('Error fetching custom pages:', error);
     return [];
   }
 };
 
-export const saveCustomPages = async (pages, lang = 'en') => {
+
+// Recursively remove undefined values from objects/arrays
+function cleanObject(obj) {
+  if (Array.isArray(obj)) {
+    return obj.map(cleanObject).filter(v => v !== undefined);
+  } else if (obj && typeof obj === 'object') {
+    const result = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        result[key] = cleanObject(value);
+      }
+    }
+    return result;
+  }
+  return obj;
+}
+
+export const saveCustomPages = async (pages) => {
   try {
-    console.log(`Saving ${pages.length} custom pages for language: ${lang}`);
+    console.log(`Saving ${pages.length} custom pages (unified translations)`);
     const batch = writeBatch(db);
     // Delete all existing pages
-    const existing = await getDocs(collection(db, `${lang}_pages`));
+    const existing = await getDocs(collection(db, 'custom_pages'));
     console.log(`Deleting ${existing.docs.length} existing pages`);
     existing.docs.forEach(doc => batch.delete(doc.ref));
-    // Add new pages
+    // Add new pages - deep-clean to remove undefined / non-serializable values
     pages.forEach(page => {
-      const ref = doc(db, `${lang}_pages`, page.id);
-      batch.set(ref, page);
+      const ref = doc(db, 'custom_pages', page.id);
+      const cleanPage = cleanObject(page);
+      batch.set(ref, cleanPage);
     });
     await batch.commit();
     console.log(`Successfully saved ${pages.length} custom pages`);
   } catch (error) {
-    console.error(`Error saving custom pages (${lang}):`, error);
+    console.error('Error saving custom pages:', error);
     throw error;
   }
 };

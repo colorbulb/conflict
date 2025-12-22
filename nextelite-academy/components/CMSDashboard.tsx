@@ -22,7 +22,13 @@ interface CMSDashboardProps {
   submissions: Submission[];
   translations: TranslationsType;
   pageContent: PageContent;
-  lookupLists: { ageGroups: string[]; courseCategories: string[]; blogCategories: string[] };
+  lookupLists: { ageGroups: string[]; courseCategories: string[]; blogCategories: string[]; difficulties: string[] };
+  customPages?: CustomPage[];
+    enCustomPages?: CustomPage[];
+    zhCustomPages?: CustomPage[];
+  menuItems?: MenuItem[];
+  enMenuItems?: MenuItem[];
+  zhMenuItems?: MenuItem[];
   onUpdateCourse: (course: Course) => void;
   onUpdateInstructor: (instructor: Instructor) => void;
   onUpdateTheme: (colors: ThemeColors) => void;
@@ -31,7 +37,9 @@ interface CMSDashboardProps {
   onUpdateTranslations: (translations: TranslationsType) => void;
   onUpdatePageContent: (pageContent: PageContent) => void;
   onUpdateLookupLists: (lists: { ageGroups: string[]; courseCategories: string[]; blogCategories: string[] }) => void;
-  initialTab?: 'courses' | 'blog' | 'instructors' | 'settings' | 'inquiries' | 'translations' | 'homepage' | 'lookups';
+  onUpdateCustomPages?: (pages: CustomPage[], lang?: 'en' | 'zh') => Promise<void>;
+  onUpdateMenuItems?: (items: MenuItem[], lang?: 'en' | 'zh') => Promise<void>;
+  initialTab?: 'courses' | 'blog' | 'instructors' | 'settings' | 'inquiries' | 'homepage' | 'lookups' | 'pages' | 'menu';
   onLogout: () => void;
 }
 
@@ -46,7 +54,11 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
   pageContent,
   lookupLists,
   customPages = [],
+  enCustomPages = [],
+  zhCustomPages = [],
   menuItems = [],
+  enMenuItems = [],
+  zhMenuItems = [],
   onUpdateCourse, 
   onUpdateInstructor,
   onUpdateTheme,
@@ -67,14 +79,30 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
   const [editingInstructor, setEditingInstructor] = useState<Instructor | null>(null);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [editingPage, setEditingPage] = useState<CustomPage | null>(null);
-  const [localCustomPages, setLocalCustomPages] = useState<CustomPage[]>(customPages);
-  const [localMenuItems, setLocalMenuItems] = useState<MenuItem[]>(menuItems);
-  const [activeTab, setActiveTab] = useState<'courses' | 'blog' | 'instructors' | 'settings' | 'inquiries' | 'translations' | 'homepage' | 'lookups' | 'pages' | 'menu'>(initialTab);
+  const [pageEditingLang, setPageEditingLang] = useState<'en' | 'zh'>('en');
+    const [localCustomPages, setLocalCustomPages] = useState<CustomPage[]>(customPages);
+    useEffect(() => {
+        setLocalCustomPages(customPages);
+    }, [customPages]);
+  
+  // Update local custom pages when props change
+  useEffect(() => {
+    setLocalEnCustomPages(enCustomPages);
+  }, [enCustomPages]);
+  
+  useEffect(() => {
+    setLocalZhCustomPages(zhCustomPages);
+  }, [zhCustomPages]);
+  
+  // Get current custom pages based on editing language
+    const currentCustomPages = localCustomPages;
+    const setCurrentCustomPages = setLocalCustomPages;
+  const [activeTab, setActiveTab] = useState<'courses' | 'blog' | 'instructors' | 'settings' | 'inquiries' | 'homepage' | 'lookups' | 'pages' | 'menu'>(initialTab);
   
   // Sync activeTab with URL
   useEffect(() => {
     const urlTab = location.pathname.split('/')[2] || 'courses';
-    const validTabs = ['courses', 'blog', 'instructors', 'settings', 'inquiries', 'translations', 'homepage', 'lookups', 'pages', 'menu'];
+    const validTabs = ['courses', 'blog', 'instructors', 'settings', 'inquiries', 'homepage', 'lookups', 'pages', 'menu'];
     if (validTabs.includes(urlTab) && urlTab !== activeTab) {
       setActiveTab(urlTab as typeof validTabs[number]);
     }
@@ -86,13 +114,31 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
     navigate(`/adminbn/${tab}`, { replace: true });
   };
   const [editingLang, setEditingLang] = useState<'en' | 'zh'>('en');
+  const [menuEditingLang, setMenuEditingLang] = useState<'en' | 'zh'>('en');
   const [localTranslations, setLocalTranslations] = useState<TranslationsType>(translations);
   const [localPageContent, setLocalPageContent] = useState<PageContent>(pageContent);
-  const [localLookupLists, setLocalLookupLists] = useState<{ ageGroups: string[]; courseCategories: string[] }>(lookupLists);
+  const [localLookupLists, setLocalLookupLists] = useState<{ ageGroups: string[]; courseCategories: string[]; blogCategories: string[]; difficulties: string[] }>(lookupLists);
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewingPdf, setViewingPdf] = useState<{ url: string; title: string } | null>(null);
+  
+  // Menu items for both languages
+  const [localEnMenuItems, setLocalEnMenuItems] = useState<MenuItem[]>(enMenuItems);
+  const [localZhMenuItems, setLocalZhMenuItems] = useState<MenuItem[]>(zhMenuItems);
+  
+  // Update local menu items when props change
+  useEffect(() => {
+    setLocalEnMenuItems(enMenuItems);
+  }, [enMenuItems]);
+  
+  useEffect(() => {
+    setLocalZhMenuItems(zhMenuItems);
+  }, [zhMenuItems]);
+  
+  // Get current menu items based on editing language
+  const currentMenuItems = menuEditingLang === 'en' ? localEnMenuItems : localZhMenuItems;
+  const setCurrentMenuItems = menuEditingLang === 'en' ? setLocalEnMenuItems : setLocalZhMenuItems;
 
   useEffect(() => {
       setLocalTranslations(translations);
@@ -106,7 +152,8 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
       setLocalLookupLists({
           ageGroups: lookupLists.ageGroups || [],
           courseCategories: lookupLists.courseCategories || [],
-          blogCategories: lookupLists.blogCategories || []
+          blogCategories: lookupLists.blogCategories || [],
+          difficulties: lookupLists.difficulties || [],
       });
   }, [lookupLists]);
   
@@ -539,6 +586,35 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                 ))}
                             </select>
                         </div>
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-1">Difficulty Levels (Select Multiple)</label>
+                            <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto border rounded-xl p-3 bg-gray-50">
+                                {localLookupLists.difficulties.map(level => (
+                                    <label key={level} className="flex items-center gap-2 cursor-pointer hover:bg-white p-2 rounded-lg transition-colors">
+                                        <input
+                                            type="checkbox"
+                                            checked={Array.isArray(editingCourse.difficulty) ? editingCourse.difficulty.includes(level) : false}
+                                            onChange={(e) => {
+                                                const current = Array.isArray(editingCourse.difficulty) ? editingCourse.difficulty : [];
+                                                if (e.target.checked) {
+                                                    setEditingCourse({
+                                                        ...editingCourse,
+                                                        difficulty: [...current, level]
+                                                    });
+                                                } else {
+                                                    setEditingCourse({
+                                                        ...editingCourse,
+                                                        difficulty: current.filter(d => d !== level)
+                                                    });
+                                                }
+                                            }}
+                                            className="w-4 h-4 text-brand-blue rounded focus:ring-brand-blue"
+                                        />
+                                        <span className="text-sm text-gray-700">{level}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
                         <div className="md:col-span-2">
                              <label className="block text-sm font-bold text-gray-700 mb-1">Short Description</label>
                              <textarea 
@@ -555,6 +631,127 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                 onChange={(html) => setEditingCourse({...editingCourse, fullDescription: html})}
                                 placeholder="Enter detailed course description..."
                              />
+                        </div>
+                    </div>
+
+                    {/* Header Background Image */}
+                    <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Course Detail Header Background</label>
+                        {editingCourse.headerBackgroundImage && (
+                            <div className="mb-3 rounded-lg overflow-hidden border border-gray-200 h-32 bg-gray-100">
+                                <img src={editingCourse.headerBackgroundImage} alt="Header Background" className="w-full h-full object-cover" />
+                            </div>
+                        )}
+                        <input 
+                            type="text"
+                            value={editingCourse.headerBackgroundImage || ''}
+                            onChange={(e) => setEditingCourse({...editingCourse, headerBackgroundImage: e.target.value})}
+                            className="w-full border rounded-lg p-2 text-xs text-gray-500 font-mono mb-2"
+                            placeholder="Image URL or drag & drop image below"
+                        />
+                        <div
+                            onDragOver={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }}
+                            onDragEnter={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.currentTarget.classList.add('border-brand-blue', 'bg-blue-50');
+                            }}
+                            onDragLeave={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.currentTarget.classList.remove('border-brand-blue', 'bg-blue-50');
+                            }}
+                            onDrop={async (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                e.currentTarget.classList.remove('border-brand-blue', 'bg-blue-50');
+                                
+                                const files = e.dataTransfer.files;
+                                if (files && files.length > 0) {
+                                    const file = files[0];
+                                    if (file.type.startsWith('image/')) {
+                                        try {
+                                            setIsUploading(true);
+                                            const uploaded = await uploadImage(file, 'backgrounds');
+                                            setEditingCourse({
+                                                ...editingCourse,
+                                                headerBackgroundImage: uploaded.url
+                                            });
+                                        } catch (error) {
+                                            console.error('Error uploading background image:', error);
+                                            alert('Error uploading image. Please try again.');
+                                        } finally {
+                                            setIsUploading(false);
+                                        }
+                                    } else {
+                                        alert('Please upload an image file (PNG, JPG, GIF, etc.)');
+                                    }
+                                }
+                            }}
+                            className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors mb-2"
+                        >
+                            {isUploading ? (
+                                <div className="text-gray-500 text-xs">
+                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-blue mx-auto mb-1"></div>
+                                    Uploading...
+                                </div>
+                            ) : (
+                                <div className="text-gray-500 text-xs">
+                                    <Upload className="w-6 h-6 mx-auto mb-1 text-gray-400" />
+                                    <p className="font-bold">Drag & drop background image</p>
+                                    <p className="text-xs mt-0.5">or click to browse</p>
+                                </div>
+                            )}
+                        </div>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={async (e) => {
+                                const files = e.target.files;
+                                if (files && files.length > 0) {
+                                    const file = files[0];
+                                    try {
+                                        setIsUploading(true);
+                                        const uploaded = await uploadImage(file, 'backgrounds');
+                                        setEditingCourse({
+                                            ...editingCourse,
+                                            headerBackgroundImage: uploaded.url
+                                        });
+                                    } catch (error) {
+                                        console.error('Error uploading background image:', error);
+                                        alert('Error uploading image. Please try again.');
+                                    } finally {
+                                        setIsUploading(false);
+                                    }
+                                }
+                            }}
+                            className="hidden"
+                            id="course-header-bg-upload"
+                        />
+                        <label
+                            htmlFor="course-header-bg-upload"
+                            className="mt-1 block text-center text-xs text-brand-blue hover:text-brand-purple font-bold cursor-pointer mb-3"
+                        >
+                            Or click to browse files
+                        </label>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-1">Background Opacity (0.0 - 1.0)</label>
+                            <input
+                                type="number"
+                                min="0"
+                                max="1"
+                                step="0.1"
+                                value={editingCourse.headerBackgroundOpacity !== undefined ? editingCourse.headerBackgroundOpacity : 0.2}
+                                onChange={(e) => setEditingCourse({
+                                    ...editingCourse,
+                                    headerBackgroundOpacity: parseFloat(e.target.value) || 0.2
+                                })}
+                                className="w-full border rounded-lg p-2 text-sm"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Default: 0.2 (20% opacity)</p>
                         </div>
                     </div>
 
@@ -1065,15 +1262,15 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                 ...editingPage,
                                 updatedAt: new Date().toISOString()
                             };
-                            const isNew = !localCustomPages.find(p => p.id === editingPage.id);
-                            let newPages = [...localCustomPages];
+                            const isNew = !currentCustomPages.find(p => p.id === editingPage.id);
+                            let newPages = [...currentCustomPages];
                             if (isNew) {
                                 newPages.push(updatedPage);
                             } else {
                                 newPages = newPages.map(p => p.id === updatedPage.id ? updatedPage : p);
                             }
-                            setLocalCustomPages(newPages);
-                            if (onUpdateCustomPages) await onUpdateCustomPages(newPages);
+                            setCurrentCustomPages(newPages);
+                            if (onUpdateCustomPages) await onUpdateCustomPages(newPages, pageEditingLang);
                             setEditingPage(null);
                         }}
                         className="flex items-center gap-2 px-6 py-2 rounded-full bg-brand-blue text-white font-bold hover:bg-blue-600 shadow-sm transition-transform hover:scale-105"
@@ -1616,19 +1813,13 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
       <div className="p-6 max-w-7xl mx-auto">
         <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
           <button onClick={() => handleTabChange('homepage')} className={`px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'homepage' ? 'bg-brand-blue text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
-            <Home className="w-4 h-4" /> Homepage
-          </button>
-          <button onClick={() => handleTabChange('courses')} className={`px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'courses' ? 'bg-brand-blue text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
-            <Briefcase className="w-4 h-4" /> Courses
-          </button>
-          <button onClick={() => handleTabChange('lookups')} className={`px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'lookups' ? 'bg-brand-blue text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
-            <ListIcon className="w-4 h-4" /> Lookup Lists
+            <Home className="w-4 h-4" /> Home
           </button>
           <button onClick={() => handleTabChange('pages')} className={`px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'pages' ? 'bg-brand-blue text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
             <FileText className="w-4 h-4" /> Pages
           </button>
-          <button onClick={() => handleTabChange('menu')} className={`px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'menu' ? 'bg-brand-blue text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
-            <ListIcon className="w-4 h-4" /> Menu
+          <button onClick={() => handleTabChange('courses')} className={`px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'courses' ? 'bg-brand-blue text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+            <Briefcase className="w-4 h-4" /> Courses
           </button>
           <button onClick={() => handleTabChange('blog')} className={`px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'blog' ? 'bg-brand-blue text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
             <FileText className="w-4 h-4" /> Blog
@@ -1636,14 +1827,17 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
           <button onClick={() => handleTabChange('instructors')} className={`px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'instructors' ? 'bg-brand-blue text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
             <User className="w-4 h-4" /> Instructors
           </button>
+          <button onClick={() => handleTabChange('settings')} className={`px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'settings' ? 'bg-brand-blue text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+            <Settings className="w-4 h-4" /> Settings
+          </button>
           <button onClick={() => handleTabChange('inquiries')} className={`px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'inquiries' ? 'bg-brand-blue text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
             <Inbox className="w-4 h-4" /> {t.admin.inquiries}
           </button>
-          <button onClick={() => handleTabChange('translations')} className={`px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'translations' ? 'bg-brand-blue text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
-            <Languages className="w-4 h-4" /> Translations
+          <button onClick={() => handleTabChange('lookups')} className={`px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'lookups' ? 'bg-brand-blue text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+            <ListIcon className="w-4 h-4" /> Lookup Lists
           </button>
-          <button onClick={() => handleTabChange('settings')} className={`px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'settings' ? 'bg-brand-blue text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
-            <Settings className="w-4 h-4" /> Settings
+          <button onClick={() => handleTabChange('menu')} className={`px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'menu' ? 'bg-brand-blue text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>
+            <ListIcon className="w-4 h-4" /> Menu
           </button>
         </div>
 
@@ -2587,6 +2781,28 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
 
         {activeTab === 'pages' && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <div className="flex justify-between items-center mb-4">
+                        <div>
+                            <h3 className="text-lg font-bold text-gray-800">Custom Pages</h3>
+                            <p className="text-sm text-gray-600 mt-1">Manage custom pages for your website. Each language has its own set of pages.</p>
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setPageEditingLang('en')}
+                                className={`px-4 py-2 rounded-lg font-bold transition-colors ${pageEditingLang === 'en' ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                            >
+                                English
+                            </button>
+                            <button
+                                onClick={() => setPageEditingLang('zh')}
+                                className={`px-4 py-2 rounded-lg font-bold transition-colors ${pageEditingLang === 'zh' ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                            >
+                                繁體中文
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 <div className="flex justify-end">
                     <button 
                         onClick={() => {
@@ -2607,7 +2823,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                     </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {localCustomPages.map(page => (
+                    {currentCustomPages.map(page => (
                         <div key={page.id} className="bg-white p-4 rounded-2xl border border-gray-100 flex flex-col gap-4 group hover:shadow-xl transition-all">
                             <div className="flex justify-between items-start">
                                 <div className="flex-1 min-w-0">
@@ -2622,9 +2838,9 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                     <button 
                                         onClick={() => {
                                             if (confirm('Delete this page?')) {
-                                                const newPages = localCustomPages.filter(p => p.id !== page.id);
-                                                setLocalCustomPages(newPages);
-                                                if (onUpdateCustomPages) onUpdateCustomPages(newPages);
+                                                const newPages = currentCustomPages.filter(p => p.id !== page.id);
+                                                setCurrentCustomPages(newPages);
+                                                if (onUpdateCustomPages) onUpdateCustomPages(newPages, pageEditingLang);
                                             }
                                         }}
                                         className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
@@ -2642,115 +2858,282 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
         {activeTab === 'menu' && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">Menu Items</h3>
+                    <div className="flex justify-between items-center mb-4">
+                        <div>
+                            <h3 className="text-lg font-bold text-gray-800">Frontend Navigation Menu</h3>
+                            <p className="text-sm text-gray-600 mt-1">Manage the main navigation menu. You can create submenus by selecting a parent item.</p>
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setMenuEditingLang('en')}
+                                className={`px-4 py-2 rounded-lg font-bold transition-colors ${menuEditingLang === 'en' ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                            >
+                                English
+                            </button>
+                            <button
+                                onClick={() => setMenuEditingLang('zh')}
+                                className={`px-4 py-2 rounded-lg font-bold transition-colors ${menuEditingLang === 'zh' ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                            >
+                                繁體中文
+                            </button>
+                        </div>
+                    </div>
                     <div className="space-y-3">
-                        {localMenuItems.sort((a, b) => a.order - b.order).map(item => (
-                            <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                <div className="flex-1 space-y-2">
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            type="text"
-                                            value={item.label}
-                                            onChange={(e) => {
-                                                const newItems = localMenuItems.map(i => 
-                                                    i.id === item.id ? { ...i, label: e.target.value } : i
-                                                );
-                                                setLocalMenuItems(newItems);
-                                            }}
-                                            onBlur={() => {
-                                                if (onUpdateMenuItems) onUpdateMenuItems(localMenuItems);
-                                            }}
-                                            className="font-bold text-gray-800 border rounded px-2 py-1 text-sm"
-                                        />
+                        {currentMenuItems
+                            .filter(item => !item.parentId) // Show only top-level items
+                            .sort((a, b) => a.order - b.order)
+                            .map(item => {
+                                const children = currentMenuItems.filter(child => child.parentId === item.id).sort((a, b) => a.order - b.order);
+                                return (
+                                    <div key={item.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                                        <div className="flex items-center gap-4 p-4 bg-gray-50">
+                                            <div className="flex-1 space-y-2">
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={item.label}
+                                                        onChange={(e) => {
+                                                            const newItems = currentMenuItems.map(i => 
+                                                                i.id === item.id ? { ...i, label: e.target.value } : i
+                                                            );
+                                                            setCurrentMenuItems(newItems);
+                                                        }}
+                                                        onBlur={() => {
+                                                            if (onUpdateMenuItems) onUpdateMenuItems(currentMenuItems, menuEditingLang);
+                                                        }}
+                                                        className="font-bold text-gray-800 border rounded px-2 py-1 text-sm"
+                                                    />
+                                                    {children.length > 0 && (
+                                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold">
+                                                            {children.length} submenu{children.length !== 1 ? 's' : ''}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center gap-2 text-xs">
+                                                    <select
+                                                        value={item.type}
+                                                        onChange={(e) => {
+                                                            const newItems = currentMenuItems.map(i => 
+                                                                i.id === item.id ? { ...i, type: e.target.value as 'page' | 'link' | 'custom' } : i
+                                                            );
+                                                            setCurrentMenuItems(newItems);
+                                                            if (onUpdateMenuItems) onUpdateMenuItems(newItems, menuEditingLang);
+                                                        }}
+                                                        className="border rounded px-2 py-1"
+                                                    >
+                                                        <option value="page">Page (Custom Page Slug)</option>
+                                                        <option value="link">Link (External URL)</option>
+                                                        <option value="custom">Custom Route</option>
+                                                    </select>
+                                                    <input
+                                                        type="text"
+                                                        value={item.target}
+                                                        onChange={(e) => {
+                                                            const newItems = currentMenuItems.map(i => 
+                                                                i.id === item.id ? { ...i, target: e.target.value } : i
+                                                            );
+                                                            setCurrentMenuItems(newItems);
+                                                        }}
+                                                        onBlur={() => {
+                                                            if (onUpdateMenuItems) onUpdateMenuItems(currentMenuItems, menuEditingLang);
+                                                        }}
+                                                        className="flex-1 border rounded px-2 py-1 text-xs font-mono"
+                                                        placeholder={item.type === 'page' ? 'page-slug' : item.type === 'link' ? 'https://...' : '/route'}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                <input
+                                                    type="number"
+                                                    value={item.order}
+                                                    onChange={(e) => {
+                                                        const newItems = currentMenuItems.map(i => 
+                                                            i.id === item.id ? { ...i, order: parseInt(e.target.value) || 0 } : i
+                                                        );
+                                                        setCurrentMenuItems(newItems);
+                                                        if (onUpdateMenuItems) onUpdateMenuItems(newItems, menuEditingLang);
+                                                    }}
+                                                    className="w-16 border rounded px-2 py-1 text-xs text-center"
+                                                    placeholder="Order"
+                                                />
+                                                <button
+                                                    onClick={() => {
+                                                        const newItems = currentMenuItems.map(i => 
+                                                            i.id === item.id ? { ...i, visible: !i.visible } : i
+                                                        );
+                                                        setCurrentMenuItems(newItems);
+                                                        if (onUpdateMenuItems) onUpdateMenuItems(newItems, menuEditingLang);
+                                                    }}
+                                                    className={`text-xs px-3 py-1 rounded-lg font-bold ${item.visible ? 'bg-green-200 text-green-700' : 'bg-gray-200 text-gray-700'} hover:opacity-80`}
+                                                >
+                                                    {item.visible ? 'Visible' : 'Hidden'}
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        if (confirm('Delete this menu item and all its submenus?')) {
+                                                            const newItems = currentMenuItems.filter(i => i.id !== item.id && i.parentId !== item.id);
+                                                            setCurrentMenuItems(newItems);
+                                                            if (onUpdateMenuItems) onUpdateMenuItems(newItems, menuEditingLang);
+                                                        }
+                                                    }}
+                                                    className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Submenu Items */}
+                                        {children.length > 0 && (
+                                            <div className="bg-gray-100 border-t border-gray-200 p-3 space-y-2">
+                                                {children.map(child => (
+                                                    <div key={child.id} className="flex items-center gap-2 p-2 bg-white rounded border border-gray-200">
+                                                        <span className="text-xs text-gray-500">└─</span>
+                                                        <input
+                                                            type="text"
+                                                            value={child.label}
+                                                            onChange={(e) => {
+                                                                const newItems = currentMenuItems.map(i => 
+                                                                    i.id === child.id ? { ...i, label: e.target.value } : i
+                                                                );
+                                                                setCurrentMenuItems(newItems);
+                                                            }}
+                                                            onBlur={() => {
+                                                                if (onUpdateMenuItems) onUpdateMenuItems(currentMenuItems, menuEditingLang);
+                                                            }}
+                                                            className="flex-1 text-sm border rounded px-2 py-1"
+                                                        />
+                                                        <select
+                                                            value={child.type}
+                                                            onChange={(e) => {
+                                                                const newItems = currentMenuItems.map(i => 
+                                                                    i.id === child.id ? { ...i, type: e.target.value as 'page' | 'link' | 'custom' } : i
+                                                                );
+                                                                setCurrentMenuItems(newItems);
+                                                                if (onUpdateMenuItems) onUpdateMenuItems(newItems, menuEditingLang);
+                                                            }}
+                                                            className="text-xs border rounded px-2 py-1"
+                                                        >
+                                                            <option value="page">Page</option>
+                                                            <option value="link">Link</option>
+                                                            <option value="custom">Route</option>
+                                                        </select>
+                                                        <input
+                                                            type="text"
+                                                            value={child.target}
+                                                            onChange={(e) => {
+                                                                const newItems = currentMenuItems.map(i => 
+                                                                    i.id === child.id ? { ...i, target: e.target.value } : i
+                                                                );
+                                                                setCurrentMenuItems(newItems);
+                                                            }}
+                                                            onBlur={() => {
+                                                                if (onUpdateMenuItems) onUpdateMenuItems(currentMenuItems, menuEditingLang);
+                                                            }}
+                                                            className="w-32 text-xs border rounded px-2 py-1 font-mono"
+                                                            placeholder="target"
+                                                        />
+                                                        <input
+                                                            type="number"
+                                                            value={child.order}
+                                                            onChange={(e) => {
+                                                                const newItems = currentMenuItems.map(i => 
+                                                                    i.id === child.id ? { ...i, order: parseInt(e.target.value) || 0 } : i
+                                                                );
+                                                                setCurrentMenuItems(newItems);
+                                                                if (onUpdateMenuItems) onUpdateMenuItems(newItems, menuEditingLang);
+                                                            }}
+                                                            className="w-12 text-xs border rounded px-1 py-1 text-center"
+                                                        />
+                                                        <button
+                                                            onClick={() => {
+                                                                const newItems = currentMenuItems.map(i => 
+                                                                    i.id === child.id ? { ...i, visible: !i.visible } : i
+                                                                );
+                                                                setCurrentMenuItems(newItems);
+                                                                if (onUpdateMenuItems) onUpdateMenuItems(newItems, menuEditingLang);
+                                                            }}
+                                                            className={`text-xs px-2 py-1 rounded ${child.visible ? 'bg-green-200 text-green-700' : 'bg-gray-200 text-gray-700'}`}
+                                                        >
+                                                            {child.visible ? '✓' : '✗'}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                if (confirm('Delete this submenu item?')) {
+                                                                    const newItems = currentMenuItems.filter(i => i.id !== child.id);
+                                                                    setCurrentMenuItems(newItems);
+                                                                    if (onUpdateMenuItems) onUpdateMenuItems(newItems, menuEditingLang);
+                                                                }
+                                                            }}
+                                                            className="text-red-500 hover:bg-red-50 p-1 rounded"
+                                                        >
+                                                            <Trash2 className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                <button
+                                                    onClick={() => {
+                                                        const newItem: MenuItem = {
+                                                            id: Math.random().toString(36).substr(2, 9),
+                                                            label: 'New Submenu Item',
+                                                            type: 'custom',
+                                                            target: '',
+                                                            order: children.length,
+                                                            visible: true,
+                                                            parentId: item.id
+                                                        };
+                                                        const newItems = [...currentMenuItems, newItem];
+                                                        setCurrentMenuItems(newItems);
+                                                        if (onUpdateMenuItems) onUpdateMenuItems(newItems, menuEditingLang);
+                                                    }}
+                                                    className="text-xs bg-gray-200 text-gray-700 px-3 py-1 rounded font-bold hover:bg-gray-300 flex items-center gap-1"
+                                                >
+                                                    <Plus className="w-3 h-3" /> Add Submenu
+                                                </button>
+                                            </div>
+                                        )}
+                                        
+                                        {/* Add Submenu Button (if no children) */}
+                                        {children.length === 0 && (
+                                            <div className="bg-gray-50 border-t border-gray-200 p-2">
+                                                <button
+                                                    onClick={() => {
+                                                        const newItem: MenuItem = {
+                                                            id: Math.random().toString(36).substr(2, 9),
+                                                            label: 'New Submenu Item',
+                                                            type: 'custom',
+                                                            target: '',
+                                                            order: 0,
+                                                            visible: true,
+                                                            parentId: item.id
+                                                        };
+                                                        const newItems = [...currentMenuItems, newItem];
+                                                        setCurrentMenuItems(newItems);
+                                                        if (onUpdateMenuItems) onUpdateMenuItems(newItems, menuEditingLang);
+                                                    }}
+                                                    className="text-xs bg-gray-200 text-gray-700 px-3 py-1 rounded font-bold hover:bg-gray-300 flex items-center gap-1"
+                                                >
+                                                    <Plus className="w-3 h-3" /> Add Submenu
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="flex items-center gap-2 text-xs">
-                                        <select
-                                            value={item.type}
-                                            onChange={(e) => {
-                                                const newItems = localMenuItems.map(i => 
-                                                    i.id === item.id ? { ...i, type: e.target.value as 'page' | 'link' | 'custom' } : i
-                                                );
-                                                setLocalMenuItems(newItems);
-                                                if (onUpdateMenuItems) onUpdateMenuItems(newItems);
-                                            }}
-                                            className="border rounded px-2 py-1"
-                                        >
-                                            <option value="page">Page (Custom Page Slug)</option>
-                                            <option value="link">Link (External URL)</option>
-                                            <option value="custom">Custom Route</option>
-                                        </select>
-                                        <input
-                                            type="text"
-                                            value={item.target}
-                                            onChange={(e) => {
-                                                const newItems = localMenuItems.map(i => 
-                                                    i.id === item.id ? { ...i, target: e.target.value } : i
-                                                );
-                                                setLocalMenuItems(newItems);
-                                            }}
-                                            onBlur={() => {
-                                                if (onUpdateMenuItems) onUpdateMenuItems(localMenuItems);
-                                            }}
-                                            className="flex-1 border rounded px-2 py-1 text-xs font-mono"
-                                            placeholder={item.type === 'page' ? 'page-slug' : item.type === 'link' ? 'https://...' : '/route'}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    <input
-                                        type="number"
-                                        value={item.order}
-                                        onChange={(e) => {
-                                            const newItems = localMenuItems.map(i => 
-                                                i.id === item.id ? { ...i, order: parseInt(e.target.value) || 0 } : i
-                                            );
-                                            setLocalMenuItems(newItems);
-                                            if (onUpdateMenuItems) onUpdateMenuItems(newItems);
-                                        }}
-                                        className="w-16 border rounded px-2 py-1 text-xs text-center"
-                                        placeholder="Order"
-                                    />
-                                    <button
-                                        onClick={() => {
-                                            const newItems = localMenuItems.map(i => 
-                                                i.id === item.id ? { ...i, visible: !i.visible } : i
-                                            );
-                                            setLocalMenuItems(newItems);
-                                            if (onUpdateMenuItems) onUpdateMenuItems(newItems);
-                                        }}
-                                        className={`text-xs px-3 py-1 rounded-lg font-bold ${item.visible ? 'bg-green-200 text-green-700' : 'bg-gray-200 text-gray-700'} hover:opacity-80`}
-                                    >
-                                        {item.visible ? 'Visible' : 'Hidden'}
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            if (confirm('Delete this menu item?')) {
-                                                const newItems = localMenuItems.filter(i => i.id !== item.id);
-                                                setLocalMenuItems(newItems);
-                                                if (onUpdateMenuItems) onUpdateMenuItems(newItems);
-                                            }
-                                        }}
-                                        className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                                );
+                            })}
                     </div>
                     <button
                         onClick={() => {
                             const newItem: MenuItem = {
                                 id: Math.random().toString(36).substr(2, 9),
                                 label: 'New Menu Item',
-                                type: 'page',
+                                type: 'custom',
                                 target: '',
-                                order: localMenuItems.length,
+                                order: currentMenuItems.filter(i => !i.parentId).length,
                                 visible: true
                             };
-                            const newItems = [...localMenuItems, newItem];
-                            setLocalMenuItems(newItems);
-                            if (onUpdateMenuItems) onUpdateMenuItems(newItems);
+                            const newItems = [...currentMenuItems, newItem];
+                            setCurrentMenuItems(newItems);
+                            if (onUpdateMenuItems) onUpdateMenuItems(newItems, menuEditingLang);
                         }}
                         className="mt-4 bg-brand-blue text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-600"
                     >
@@ -2817,7 +3200,11 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                     <td className="p-4 text-sm text-gray-800 font-medium">{sub.courseInterest || '-'}</td>
                                     <td className="p-4 text-sm text-gray-600 max-w-xs truncate">{sub.details}</td>
                                     <td className="p-4 text-xs text-gray-400 font-mono">
-                                        {new Date(sub.timestamp).toLocaleDateString()}
+                                        {sub.timestamp ? (
+                                            typeof sub.timestamp === 'object' && sub.timestamp.toDate 
+                                                ? sub.timestamp.toDate().toLocaleDateString()
+                                                : new Date(sub.timestamp).toLocaleDateString()
+                                        ) : '-'}
                                     </td>
                                 </tr>
                             ))}
@@ -2827,57 +3214,6 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
             </div>
         )}
 
-        {activeTab === 'translations' && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                            <div className="bg-brand-blue p-1.5 rounded-lg text-white"><Languages className="w-5 h-5" /></div>
-                            Translation Editor
-                        </h3>
-                        <div className="flex gap-2">
-                            <button 
-                                onClick={() => setEditingLang('en')}
-                                className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors ${editingLang === 'en' ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                            >
-                                English
-                            </button>
-                            <button 
-                                onClick={() => setEditingLang('zh')}
-                                className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors ${editingLang === 'zh' ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                            >
-                                中文
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                        {flattenTranslations(localTranslations[editingLang]).map((item, idx) => (
-                            <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
-                                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
-                                    {item.label}
-                                </label>
-                                <input
-                                    type="text"
-                                    value={item.value}
-                                    onChange={(e) => updateTranslationValue(item.path, e.target.value)}
-                                    className="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none bg-white focus:bg-white transition-colors"
-                                />
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="mt-6 pt-6 border-t border-gray-100">
-                        <button 
-                            onClick={handleSaveTranslations}
-                            className="w-full bg-brand-blue text-white py-4 rounded-xl font-bold hover:bg-blue-600 flex justify-center items-center gap-2 shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1"
-                        >
-                            <Save className="w-5 h-5" /> Save Translations
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )}
 
         {activeTab === 'lookups' && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -2895,7 +3231,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                         {/* Age Groups */}
                         <div>
                             <div className="flex justify-between items-center mb-4">
@@ -3054,13 +3390,110 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                 ))}
                             </div>
                         </div>
+
+                        {/* Difficulty Levels */}
+                        <div>
+                            <div className="flex justify-between items-center mb-4">
+                                <h4 className="text-lg font-bold text-gray-800">Difficulty Levels</h4>
+                                <button
+                                    onClick={() => {
+                                        const newItem = prompt('Enter new difficulty level:');
+                                        if (newItem && newItem.trim()) {
+                                            setLocalLookupLists({
+                                                ...localLookupLists,
+                                                difficulties: [...(localLookupLists.difficulties || []), newItem.trim()]
+                                            });
+                                        }
+                                    }}
+                                    className="text-brand-blue hover:text-brand-purple font-bold text-sm flex items-center gap-1"
+                                >
+                                    <Plus className="w-4 h-4" /> Add
+                                </button>
+                            </div>
+                            <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                                {(localLookupLists.difficulties || []).map((level, idx) => (
+                                    <div key={idx} className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                        <input
+                                            type="text"
+                                            value={level}
+                                            onChange={(e) => {
+                                                const newLevels = [...(localLookupLists.difficulties || [])];
+                                                newLevels[idx] = e.target.value;
+                                                setLocalLookupLists({
+                                                    ...localLookupLists,
+                                                    difficulties: newLevels
+                                                });
+                                            }}
+                                            className="flex-1 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-brand-blue outline-none bg-white"
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                if (confirm('Delete this difficulty level?')) {
+                                                    setLocalLookupLists({
+                                                        ...localLookupLists,
+                                                        difficulties: (localLookupLists.difficulties || []).filter((_, i) => i !== idx)
+                                                    });
+                                                }
+                                            }}
+                                            className="text-red-400 hover:text-red-600 p-1"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         )}
 
         {activeTab === 'settings' && (
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4">
+             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
+                {/* Translations Section */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                        <div className="bg-brand-blue p-1.5 rounded-lg text-white"><Languages className="w-5 h-5" /></div>
+                        Translations
+                    </h3>
+                    <div className="mb-4 flex gap-2">
+                        <button
+                            onClick={() => setEditingLang('en')}
+                            className={`px-4 py-2 rounded-lg font-bold transition-colors ${editingLang === 'en' ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                        >
+                            English
+                        </button>
+                        <button
+                            onClick={() => setEditingLang('zh')}
+                            className={`px-4 py-2 rounded-lg font-bold transition-colors ${editingLang === 'zh' ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                        >
+                            繁體中文
+                        </button>
+                    </div>
+                    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                        {flattenTranslations(localTranslations[editingLang]).map((item, idx) => (
+                            <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
+                                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
+                                    {item.label}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={item.value}
+                                    onChange={(e) => updateTranslationValue(item.path, e.target.value)}
+                                    className="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue outline-none bg-white focus:bg-white transition-colors"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    <button
+                        onClick={handleSaveTranslations}
+                        className="mt-6 w-full bg-brand-blue text-white py-4 rounded-xl font-bold hover:bg-blue-600 flex justify-center items-center gap-2 shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1"
+                    >
+                        <Save className="w-5 h-5" /> Save Translations
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Brand Colors */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
@@ -3175,7 +3608,9 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                     </div>
                 </div>
 
-                <div className="md:col-span-2 mt-4">
+                </div>
+
+                <div className="mt-4">
                      <button 
                         onClick={handleSaveSettings}
                         className="w-full bg-brand-blue text-white py-4 rounded-xl font-bold hover:bg-blue-600 flex justify-center items-center gap-2 shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1"

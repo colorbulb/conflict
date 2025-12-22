@@ -24,6 +24,8 @@ export interface Course {
   title: string;
   ageGroup: string[]; // Multiple age groups
   category: string;
+  // Difficulty levels for this course (e.g. Beginner, Intermediate)
+  difficulty?: string[];
   description: string;
   fullDescription?: string; // Detailed description for the page (HTML)
   icon: React.ReactNode;
@@ -32,6 +34,8 @@ export interface Course {
   attachments: Attachment[];
   galleryImages?: string[]; // Specific images for this course
   quiz?: Quiz; // Optional quiz module
+  headerBackgroundImage?: string; // Background image for course detail header
+  headerBackgroundOpacity?: number; // Opacity for background (default 0.2)
 }
 
 export interface Instructor {
@@ -163,11 +167,9 @@ export interface PageContent {
   logo?: string;
 }
 
-export interface CustomPage {
-  id: string;
-  slug: string; // URL slug (e.g., 'our-story', 'services')
-  name: string; // Display name
-  content: string; // HTML content (generated from layout blocks)
+export interface CustomPageTranslation {
+  name: string;
+  content: string;
   layoutBlocks?: Array<{
     id: string;
     type: 'text-image' | 'text-only' | 'image-text' | 'image-carousel';
@@ -175,6 +177,15 @@ export interface CustomPage {
     imageUrl?: string;
     images?: string[];
   }>;
+}
+
+export interface CustomPage {
+  id: string;
+  slug: string; // URL slug (e.g., 'our-story', 'services')
+  translations: {
+    en: CustomPageTranslation;
+    zh: CustomPageTranslation;
+  };
   createdAt: string; // ISO Date string
   updatedAt: string; // ISO Date string
 }
@@ -186,12 +197,15 @@ export interface MenuItem {
   target: string; // slug, URL, or route path
   order: number; // Display order
   visible: boolean; // Show/hide in menu
+  parentId?: string; // For submenus - ID of parent menu item
+  children?: MenuItem[]; // Submenu items (computed/optional)
 }
 
 export interface LookupLists {
   ageGroups: string[];
   courseCategories: string[];
   blogCategories: string[];
+  difficulties: string[];
 }
 
 export interface AppData {

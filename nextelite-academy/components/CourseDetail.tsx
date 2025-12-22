@@ -48,7 +48,19 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll })
 
         {/* Header Section */}
         <div className={`rounded-3xl p-8 md:p-12 text-white mb-10 shadow-lg ${course.color} relative overflow-hidden`}>
-           <div className="absolute top-0 right-0 p-10 opacity-20">
+           {/* Background Image */}
+           {course.headerBackgroundImage && (
+             <div 
+               className="absolute inset-0 z-0"
+               style={{
+                 backgroundImage: `url(${course.headerBackgroundImage})`,
+                 backgroundSize: 'cover',
+                 backgroundPosition: 'center',
+                 opacity: course.headerBackgroundOpacity !== undefined ? course.headerBackgroundOpacity : 0.2
+               }}
+             />
+           )}
+           <div className="absolute top-0 right-0 p-10 opacity-20 z-0">
              <div className="transform scale-150">
                 {/* Simplified Icon handling for detail view if icon is string */}
                 {/* In a real app we'd map this, for now we skip re-rendering the string icon or use a generic one if needed */}
@@ -157,7 +169,11 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, onBack, onEnroll })
                     <div className="w-5 h-5 mr-3 flex items-center justify-center">
                       <span className="block w-2 h-2 bg-green-500 rounded-full"></span>
                     </div>
-                   <span>{t.course.level}</span>
+                   {Array.isArray(course.difficulty) && course.difficulty.length > 0 ? (
+                     <span>{course.difficulty.join(' · ')}</span>
+                   ) : (
+                     <span>{t.course.level}</span>
+                   )}
                  </div>
                </div>
 
