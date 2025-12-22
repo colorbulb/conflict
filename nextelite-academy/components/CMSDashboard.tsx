@@ -22,10 +22,10 @@ interface CMSDashboardProps {
   submissions: Submission[];
   translations: TranslationsType;
   pageContent: PageContent;
-  lookupLists: { ageGroups: string[]; courseCategories: string[]; blogCategories: string[]; difficulties: string[] };
+  lookupLists: { ageGroups: string[]; courseCategories: string[]; blogCategories: string[] };
   customPages?: CustomPage[];
-    enCustomPages?: CustomPage[];
-    zhCustomPages?: CustomPage[];
+  enCustomPages?: CustomPage[];
+  zhCustomPages?: CustomPage[];
   menuItems?: MenuItem[];
   enMenuItems?: MenuItem[];
   zhMenuItems?: MenuItem[];
@@ -80,16 +80,21 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [editingPage, setEditingPage] = useState<CustomPage | null>(null);
   const [pageEditingLang, setPageEditingLang] = useState<'en' | 'zh'>('en');
-    const [localCustomPages, setLocalCustomPages] = useState<CustomPage[]>(customPages);
-    useEffect(() => {
-        setLocalCustomPages(customPages);
-    }, [customPages]);
+  const [localEnCustomPages, setLocalEnCustomPages] = useState<CustomPage[]>(enCustomPages);
+  const [localZhCustomPages, setLocalZhCustomPages] = useState<CustomPage[]>(zhCustomPages);
   
-    // Removed undefined setLocalEnCustomPages and setLocalZhCustomPages
+  // Update local custom pages when props change
+  useEffect(() => {
+    setLocalEnCustomPages(enCustomPages);
+  }, [enCustomPages]);
+  
+  useEffect(() => {
+    setLocalZhCustomPages(zhCustomPages);
+  }, [zhCustomPages]);
   
   // Get current custom pages based on editing language
-    const currentCustomPages = localCustomPages;
-    const setCurrentCustomPages = setLocalCustomPages;
+  const currentCustomPages = pageEditingLang === 'en' ? localEnCustomPages : localZhCustomPages;
+  const setCurrentCustomPages = pageEditingLang === 'en' ? setLocalEnCustomPages : setLocalZhCustomPages;
   const [activeTab, setActiveTab] = useState<'courses' | 'blog' | 'instructors' | 'settings' | 'inquiries' | 'homepage' | 'lookups' | 'pages' | 'menu'>(initialTab);
   
   // Sync activeTab with URL
@@ -110,7 +115,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
   const [menuEditingLang, setMenuEditingLang] = useState<'en' | 'zh'>('en');
   const [localTranslations, setLocalTranslations] = useState<TranslationsType>(translations);
   const [localPageContent, setLocalPageContent] = useState<PageContent>(pageContent);
-  const [localLookupLists, setLocalLookupLists] = useState<{ ageGroups: string[]; courseCategories: string[]; blogCategories: string[]; difficulties: string[] }>(lookupLists);
+  const [localLookupLists, setLocalLookupLists] = useState<{ ageGroups: string[]; courseCategories: string[] }>(lookupLists);
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -145,8 +150,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
       setLocalLookupLists({
           ageGroups: lookupLists.ageGroups || [],
           courseCategories: lookupLists.courseCategories || [],
-          blogCategories: lookupLists.blogCategories || [],
-          difficulties: lookupLists.difficulties || [],
+          blogCategories: lookupLists.blogCategories || []
       });
   }, [lookupLists]);
   
@@ -578,35 +582,6 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                     <option key={cat} value={cat}>{cat}</option>
                                 ))}
                             </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-1">Difficulty Levels (Select Multiple)</label>
-                            <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto border rounded-xl p-3 bg-gray-50">
-                                {localLookupLists.difficulties.map(level => (
-                                    <label key={level} className="flex items-center gap-2 cursor-pointer hover:bg-white p-2 rounded-lg transition-colors">
-                                        <input
-                                            type="checkbox"
-                                            checked={Array.isArray(editingCourse.difficulty) ? editingCourse.difficulty.includes(level) : false}
-                                            onChange={(e) => {
-                                                const current = Array.isArray(editingCourse.difficulty) ? editingCourse.difficulty : [];
-                                                if (e.target.checked) {
-                                                    setEditingCourse({
-                                                        ...editingCourse,
-                                                        difficulty: [...current, level]
-                                                    });
-                                                } else {
-                                                    setEditingCourse({
-                                                        ...editingCourse,
-                                                        difficulty: current.filter(d => d !== level)
-                                                    });
-                                                }
-                                            }}
-                                            className="w-4 h-4 text-brand-blue rounded focus:ring-brand-blue"
-                                        />
-                                        <span className="text-sm text-gray-700">{level}</span>
-                                    </label>
-                                ))}
-                            </div>
                         </div>
                         <div className="md:col-span-2">
                              <label className="block text-sm font-bold text-gray-700 mb-1">Short Description</label>
@@ -1336,6 +1311,11 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                                      ${block.imageUrl ? `<div class="rounded-lg overflow-hidden"><img src="${block.imageUrl}" alt="" class="w-full h-auto object-cover responsive-image" /></div>` : ''}
                                                      <div class="prose prose-lg max-w-none">${block.text.replace(/\n/g, '<br>')}</div>
                                                  </div>`;
+                                             } else if (block.type === 'image-text-stack') {
+                                                 return `<div class="image-text-stack">
+                                                     ${block.imageUrl ? `<div class="image-container"><img src="${block.imageUrl}" alt="" class="w-full h-auto object-cover responsive-image" /></div>` : ''}
+                                                     <div class="text-container prose prose-lg max-w-none">${block.text.replace(/\n/g, '<br>')}</div>
+                                                 </div>`;
                                              } else if (block.type === 'image-carousel') {
                                                  const images = block.images || [];
                                                  if (images.length === 0) return '';
@@ -1591,6 +1571,11 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                                  return `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center my-6">
                                                      ${block.imageUrl ? `<div class="rounded-lg overflow-hidden"><img src="${block.imageUrl}" alt="" class="w-full h-auto object-cover responsive-image" /></div>` : ''}
                                                      <div class="prose prose-lg max-w-none">${block.text.replace(/\n/g, '<br>')}</div>
+                                                 </div>`;
+                                             } else if (block.type === 'image-text-stack') {
+                                                 return `<div class="image-text-stack">
+                                                     ${block.imageUrl ? `<div class="image-container"><img src="${block.imageUrl}" alt="" class="w-full h-auto object-cover responsive-image" /></div>` : ''}
+                                                     <div class="text-container prose prose-lg max-w-none">${block.text.replace(/\n/g, '<br>')}</div>
                                                  </div>`;
                                              } else if (block.type === 'image-carousel') {
                                                  const images = block.images || [];
@@ -2054,6 +2039,11 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                                         return `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center my-6">
                                                             ${block.imageUrl ? `<div class="rounded-lg overflow-hidden"><img src="${block.imageUrl}" alt="" class="w-full h-auto object-cover responsive-image" /></div>` : ''}
                                                             <div class="prose prose-lg max-w-none">${block.text.replace(/\n/g, '<br>')}</div>
+                                                        </div>`;
+                                                    } else if (block.type === 'image-text-stack') {
+                                                        return `<div class="image-text-stack">
+                                                            ${block.imageUrl ? `<div class="image-container"><img src="${block.imageUrl}" alt="" class="w-full h-auto object-cover responsive-image" /></div>` : ''}
+                                                            <div class="text-container prose prose-lg max-w-none">${block.text.replace(/\n/g, '<br>')}</div>
                                                         </div>`;
                                                     } else if (block.type === 'image-carousel') {
                                                         const images = block.images || [];
@@ -2918,40 +2908,21 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                                         <option value="link">Link (External URL)</option>
                                                         <option value="custom">Custom Route</option>
                                                     </select>
-                                                    {item.type === 'page' ? (
-                                                        <select
-                                                            value={item.target}
-                                                            onChange={e => {
-                                                                const newItems = currentMenuItems.map(i =>
-                                                                    i.id === item.id ? { ...i, target: e.target.value } : i
-                                                                );
-                                                                setCurrentMenuItems(newItems);
-                                                                if (onUpdateMenuItems) onUpdateMenuItems(newItems, menuEditingLang);
-                                                            }}
-                                                            className="flex-1 border rounded px-2 py-1 text-xs font-mono bg-white"
-                                                        >
-                                                            <option value="">Select a page slug...</option>
-                                                            {currentCustomPages.map(page => (
-                                                                <option key={page.slug} value={page.slug}>{page.slug}</option>
-                                                            ))}
-                                                        </select>
-                                                    ) : (
-                                                        <input
-                                                            type="text"
-                                                            value={item.target}
-                                                            onChange={(e) => {
-                                                                const newItems = currentMenuItems.map(i => 
-                                                                    i.id === item.id ? { ...i, target: e.target.value } : i
-                                                                );
-                                                                setCurrentMenuItems(newItems);
-                                                            }}
-                                                            onBlur={() => {
-                                                                if (onUpdateMenuItems) onUpdateMenuItems(currentMenuItems, menuEditingLang);
-                                                            }}
-                                                            className="flex-1 border rounded px-2 py-1 text-xs font-mono"
-                                                            placeholder={item.type === 'link' ? 'https://...' : '/route'}
-                                                        />
-                                                    )}
+                                                    <input
+                                                        type="text"
+                                                        value={item.target}
+                                                        onChange={(e) => {
+                                                            const newItems = currentMenuItems.map(i => 
+                                                                i.id === item.id ? { ...i, target: e.target.value } : i
+                                                            );
+                                                            setCurrentMenuItems(newItems);
+                                                        }}
+                                                        onBlur={() => {
+                                                            if (onUpdateMenuItems) onUpdateMenuItems(currentMenuItems, menuEditingLang);
+                                                        }}
+                                                        className="flex-1 border rounded px-2 py-1 text-xs font-mono"
+                                                        placeholder={item.type === 'page' ? 'page-slug' : item.type === 'link' ? 'https://...' : '/route'}
+                                                    />
                                                 </div>
                                             </div>
                                             <div className="flex flex-col gap-2">
@@ -3212,11 +3183,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                     <td className="p-4 text-sm text-gray-800 font-medium">{sub.courseInterest || '-'}</td>
                                     <td className="p-4 text-sm text-gray-600 max-w-xs truncate">{sub.details}</td>
                                     <td className="p-4 text-xs text-gray-400 font-mono">
-                                        {sub.timestamp ? (
-                                            typeof sub.timestamp === 'object' && sub.timestamp.toDate 
-                                                ? sub.timestamp.toDate().toLocaleDateString()
-                                                : new Date(sub.timestamp).toLocaleDateString()
-                                        ) : '-'}
+                                        {new Date(sub.timestamp).toLocaleDateString()}
                                     </td>
                                 </tr>
                             ))}
@@ -3243,7 +3210,7 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {/* Age Groups */}
                         <div>
                             <div className="flex justify-between items-center mb-4">
@@ -3391,59 +3358,6 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                                     setLocalLookupLists({
                                                         ...localLookupLists,
                                                         blogCategories: (localLookupLists.blogCategories || []).filter((_, i) => i !== idx)
-                                                    });
-                                                }
-                                            }}
-                                            className="text-red-400 hover:text-red-600 p-1"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Difficulty Levels */}
-                        <div>
-                            <div className="flex justify-between items-center mb-4">
-                                <h4 className="text-lg font-bold text-gray-800">Difficulty Levels</h4>
-                                <button
-                                    onClick={() => {
-                                        const newItem = prompt('Enter new difficulty level:');
-                                        if (newItem && newItem.trim()) {
-                                            setLocalLookupLists({
-                                                ...localLookupLists,
-                                                difficulties: [...(localLookupLists.difficulties || []), newItem.trim()]
-                                            });
-                                        }
-                                    }}
-                                    className="text-brand-blue hover:text-brand-purple font-bold text-sm flex items-center gap-1"
-                                >
-                                    <Plus className="w-4 h-4" /> Add
-                                </button>
-                            </div>
-                            <div className="space-y-2 max-h-[500px] overflow-y-auto">
-                                {(localLookupLists.difficulties || []).map((level, idx) => (
-                                    <div key={idx} className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                                        <input
-                                            type="text"
-                                            value={level}
-                                            onChange={(e) => {
-                                                const newLevels = [...(localLookupLists.difficulties || [])];
-                                                newLevels[idx] = e.target.value;
-                                                setLocalLookupLists({
-                                                    ...localLookupLists,
-                                                    difficulties: newLevels
-                                                });
-                                            }}
-                                            className="flex-1 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-brand-blue outline-none bg-white"
-                                        />
-                                        <button
-                                            onClick={() => {
-                                                if (confirm('Delete this difficulty level?')) {
-                                                    setLocalLookupLists({
-                                                        ...localLookupLists,
-                                                        difficulties: (localLookupLists.difficulties || []).filter((_, i) => i !== idx)
                                                     });
                                                 }
                                             }}
