@@ -1,4 +1,5 @@
 import React from 'react';
+import LayoutBuilder from '../LayoutBuilder';
 import { CustomPage, CustomPageTranslation } from '../../types';
 
 interface CustomPageEditorProps {
