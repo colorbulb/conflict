@@ -144,7 +144,21 @@ const CustomPageEditor: React.FC<CustomPageEditorProps> = ({ editingPage, setEdi
       </div>
       <div className="flex gap-2 justify-end mt-6">
         <button onClick={() => setEditingPage(null)} className="px-4 py-2 rounded bg-gray-200 text-gray-700 font-bold">Cancel</button>
-        <button onClick={() => onSave({ ...editingPage, updatedAt: new Date().toISOString() })} className="px-6 py-2 rounded bg-brand-blue text-white font-bold">Save</button>
+        <button
+          onClick={() => {
+            const pageToSave = { ...editingPage, updatedAt: new Date().toISOString() };
+            console.log('[CustomPageEditor] Attempting to save custom page:', pageToSave);
+            try {
+              onSave(pageToSave);
+              console.log('[CustomPageEditor] onSave called successfully for:', pageToSave.slug || pageToSave.id);
+            } catch (error) {
+              console.error('[CustomPageEditor] Error in onSave:', error, pageToSave);
+            }
+          }}
+          className="px-6 py-2 rounded bg-brand-blue text-white font-bold"
+        >
+          Save
+        </button>
       </div>
     </div>
   );
