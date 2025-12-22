@@ -1,0 +1,177 @@
+/* Global Styles and Consolidated CSS */
+
+/* Custom Pages Layout Support - Mobile Responsive */
+.custom-page-content .responsive-image {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.custom-page-content .grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.custom-page-content .grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+  .custom-page-content .md\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .custom-page-content .grid {
+    gap: 1.5rem;
+  }
+}
+
+.custom-page-content .items-center {
+  align-items: center;
+}
+
+.custom-page-content .my-6 {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.custom-page-content .prose {
+  color: #374151;
+  max-width: 65ch;
+}
+
+.custom-page-content .prose-lg {
+  font-size: 1.125rem;
+  line-height: 1.7777778;
+}
+
+.custom-page-content .max-w-none {
+  max-width: none;
+}
+
+.custom-page-content .rounded-lg {
+  border-radius: 0.5rem;
+}
+
+.custom-page-content .overflow-hidden {
+  overflow: hidden;
+}
+
+/* Image Carousel Support */
+.custom-page-content .flex {
+  display: flex;
+}
+
+.custom-page-content .gap-4 {
+  gap: 1rem;
+}
+
+.custom-page-content .overflow-x-auto {
+  overflow-x: auto;
+}
+
+.custom-page-content .pb-4 {
+  padding-bottom: 1rem;
+}
+
+.custom-page-content .flex-shrink-0 {
+  flex-shrink: 0;
+}
+
+.custom-page-content .w-64 {
+  width: 16rem;
+}
+
+.custom-page-content .h-64 {
+  height: 16rem;
+}
+
+/* Image-Text-Stack Layout (5th Layout) */
+.custom-page-content .flex-col {
+  flex-direction: column;
+}
+
+.custom-page-content .space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+/* Mobile responsive image-text-stack */
+.custom-page-content .image-text-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.custom-page-content .image-text-stack .image-container {
+  width: 100%;
+  max-height: 400px;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
+.custom-page-content .image-text-stack .text-container {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .custom-page-content .image-text-stack .image-container {
+    max-height: 500px;
+  }
+}
+
+/* Smooth scrolling for carousels */
+.custom-page-content .overflow-x-auto {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.custom-page-content .overflow-x-auto::-webkit-scrollbar {
+  height: 8px;
+}
+
+.custom-page-content .overflow-x-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.custom-page-content .overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.custom-page-content .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Fix for prose content spacing */
+.custom-page-content .prose p {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.custom-page-content .prose h2 {
+  margin-top: 2em;
+  margin-bottom: 1em;
+  font-size: 1.5em;
+  font-weight: 700;
+}
+
+.custom-page-content .prose h3 {
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+  font-size: 1.25em;
+  font-weight: 600;
+}
+
+.custom-page-content .prose ul, 
+.custom-page-content .prose ol {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  padding-left: 1.5em;
+}
+
+.custom-page-content .prose li {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}

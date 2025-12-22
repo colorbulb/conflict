@@ -24,8 +24,6 @@ export interface Course {
   title: string;
   ageGroup: string[]; // Multiple age groups
   category: string;
-  // Difficulty levels for this course (e.g. Beginner, Intermediate)
-  difficulty?: string[];
   description: string;
   fullDescription?: string; // Detailed description for the page (HTML)
   icon: React.ReactNode;
@@ -57,7 +55,7 @@ export interface BlogPost {
   category?: string; // Blog category from lookup list
   layoutBlocks?: Array<{
     id: string;
-    type: 'text-image' | 'text-only' | 'image-text' | 'image-carousel';
+    type: 'text-image' | 'text-only' | 'image-text' | 'image-carousel' | 'image-text-stack';
     text: string;
     imageUrl?: string;
     images?: string[];
@@ -141,7 +139,7 @@ export interface PageContent {
     imageUrl?: string;
     layoutBlocks?: Array<{
       id: string;
-      type: 'text-image' | 'text-only' | 'image-text' | 'image-carousel';
+      type: 'text-image' | 'text-only' | 'image-text' | 'image-carousel' | 'image-text-stack';
       text: string;
       imageUrl?: string;
       images?: string[];
@@ -167,24 +165,32 @@ export interface PageContent {
   logo?: string;
 }
 
-export interface CustomPageTranslation {
-  name: string;
-  content: string;
-  layoutBlocks?: Array<{
-    id: string;
-    type: 'text-image' | 'text-only' | 'image-text' | 'image-carousel';
-    text: string;
-    imageUrl?: string;
-    images?: string[];
-  }>;
-}
-
 export interface CustomPage {
   id: string;
   slug: string; // URL slug (e.g., 'our-story', 'services')
   translations: {
-    en: CustomPageTranslation;
-    zh: CustomPageTranslation;
+    en: {
+      name: string; // Display name
+      content: string; // HTML content (generated from layout blocks)
+      layoutBlocks?: Array<{
+        id: string;
+        type: 'text-image' | 'text-only' | 'image-text' | 'image-carousel' | 'image-text-stack';
+        text: string;
+        imageUrl?: string;
+        images?: string[];
+      }>;
+    };
+    zh: {
+      name: string; // Display name
+      content: string; // HTML content (generated from layout blocks)
+      layoutBlocks?: Array<{
+        id: string;
+        type: 'text-image' | 'text-only' | 'image-text' | 'image-carousel' | 'image-text-stack';
+        text: string;
+        imageUrl?: string;
+        images?: string[];
+      }>;
+    };
   };
   createdAt: string; // ISO Date string
   updatedAt: string; // ISO Date string
@@ -205,7 +211,6 @@ export interface LookupLists {
   ageGroups: string[];
   courseCategories: string[];
   blogCategories: string[];
-  difficulties: string[];
 }
 
 export interface AppData {

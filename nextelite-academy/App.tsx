@@ -1,100 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { useLanguage } from './components/LanguageContext';
-
-// Debug wrapper for custom page route
-const CustomPageDebugWrapper: React.FC<{ page: any }> = ({ page }) => {
-  const location = useLocation();
-  const { language } = useLanguage();
-  
-  // Get content based on current language
-  const translation = page.translations?.[language];
-  const content = translation?.content || '';
-  const pageName = translation?.name || 'Untitled Page';
-  
-  useEffect(() => {
-    console.log('[CustomPageDebug] Current path:', location.pathname);
-    console.log('[CustomPageDebug] Page slug:', page.slug);
-    console.log('[CustomPageDebug] Current language:', language);
-    console.log('[CustomPageDebug] Page name:', pageName);
-    console.log('[CustomPageDebug] Page content length:', content?.length || 0);
-    console.log('[CustomPageDebug] Page content preview:', content?.substring(0, 100));
-  }, [location, page, language, content, pageName]);
-  
-  if (!content) {
-    return (
-      <div className="min-h-screen pt-24 pb-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-3xl shadow-sm p-8 text-center">
-            <h1 className="text-3xl font-bold text-gray-800 mb-4">{pageName}</h1>
-            <p className="text-gray-600">No content available for this page in {language === 'en' ? 'English' : '繁體中文'}.</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="min-h-screen pt-24 pb-20 bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-3xl shadow-sm p-4 sm:p-6 lg:p-8">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-6">{pageName}</h1>
-          <style dangerouslySetInnerHTML={{ __html: `
-            .custom-page-content img {
-              max-width: 100%;
-              height: auto;
-              border-radius: 0.75rem;
-            }
-            .custom-page-content .prose {
-              color: #374151;
-            }
-            .custom-page-content .prose p {
-              margin-bottom: 1rem;
-              line-height: 1.75;
-            }
-            .custom-page-content .prose h2 {
-              font-size: 1.5rem;
-              font-weight: 700;
-              margin-top: 2rem;
-              margin-bottom: 1rem;
-              color: #1f2937;
-            }
-            .custom-page-content .prose h3 {
-              font-size: 1.25rem;
-              font-weight: 600;
-              margin-top: 1.5rem;
-              margin-bottom: 0.75rem;
-              color: #374151;
-            }
-            .custom-page-content .prose ul, 
-            .custom-page-content .prose ol {
-              margin-left: 1.5rem;
-              margin-bottom: 1rem;
-            }
-            .custom-page-content .prose li {
-              margin-bottom: 0.5rem;
-            }
-            @media (max-width: 768px) {
-              .custom-page-content .prose {
-                font-size: 0.9rem;
-              }
-              .custom-page-content .prose h2 {
-                font-size: 1.25rem;
-              }
-              .custom-page-content .prose h3 {
-                font-size: 1.1rem;
-              }
-            }
-          ` }} />
-          <div 
-            className="prose prose-sm sm:prose-base lg:prose-lg max-w-none custom-page-content"
-            dangerouslySetInnerHTML={{ __html: content }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
 import { motion } from 'framer-motion';
 import { Routes, Route, useParams, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { Section, Course, AppData, ThemeColors, TrialSettings, Submission, BlogPost, Instructor, CustomPage, MenuItem } from './types';
@@ -215,11 +119,6 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
             menuItems: zhData?.menuItems || prev.zh.menuItems || []
           }
         }));
-        
-        // Debug logging for custom pages
-        console.log('[App] Custom pages loaded from Firestore:');
-        console.log('[App] EN custom pages:', enData?.customPages);
-        console.log('[App] ZH custom pages:', zhData?.customPages);
       } catch (error) {
         console.error('Error loading data from Firestore:', error);
         // Fallback to INITIAL_DATA if Firestore fails
@@ -372,33 +271,24 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
       saveLookupLists(lookupLists, language).catch(err => console.error('Error saving lookup lists:', err));
   };
 
-  const handleUpdateCustomPages = async (pages: CustomPage[]) => {
-    try {
-      // First save to Firestore
-      await saveCustomPages(pages);
-      
-      // Then update local state
+  const handleUpdateCustomPages = async (pages: CustomPage[], lang?: 'en' | 'zh') => {
+      const targetLang = lang || language;
+      console.log('handleUpdateCustomPages called with', pages.length, 'pages for language:', targetLang);
       setDb(prev => ({
-        ...prev,
-        en: {
-          ...prev.en,
-          customPages: pages
-        },
-        zh: {
-          ...prev.zh,
-          customPages: pages
-        }
+          ...prev,
+          [targetLang]: {
+              ...prev[targetLang],
+              customPages: pages
+          }
       }));
-      
-      // Wait a tick for React to re-render with the new routes
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      alert('Custom pages saved successfully!');
-    } catch (err) {
-      console.error('Error saving custom pages:', err);
-      alert('Error saving custom pages: ' + (err instanceof Error ? err.message : String(err)));
-      throw err; // Re-throw so caller knows it failed
-    }
+
+      try {
+          await saveCustomPages(pages, targetLang);
+          alert('Custom pages saved successfully!');
+      } catch (err) {
+          console.error('Error saving custom pages:', err);
+          alert('Error saving custom pages: ' + (err instanceof Error ? err.message : String(err)));
+      }
   };
 
   const handleUpdateMenuItems = async (items: MenuItem[], lang?: 'en' | 'zh') => {
@@ -482,6 +372,8 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
             pageContent={currentData.pageContent || INITIAL_DATA[language].pageContent}
             lookupLists={currentData.lookupLists || INITIAL_DATA[language].lookupLists}
             customPages={currentData.customPages || []}
+            enCustomPages={db.en.customPages || []}
+            zhCustomPages={db.zh.customPages || []}
             menuItems={currentData.menuItems || []}
             enMenuItems={db.en.menuItems || []}
             zhMenuItems={db.zh.menuItems || []}
@@ -1103,24 +995,22 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           {/* Dynamic custom pages */}
-          {(() => {
-            console.log('[CustomPageRoute] isLoading:', isLoading);
-            console.log('[CustomPageRoute] currentData.customPages:', currentData.customPages);
-            if (currentData.customPages && currentData.customPages.length > 0) {
-              console.log('[CustomPageRoute] Registering', currentData.customPages.length, 'custom page routes');
-            }
-            return currentData.customPages?.map(page => {
-              const routePath = `/${page.slug}`;
-              console.log('[CustomPageRoute] Registering route:', routePath, 'for page:', page.translations?.en?.name || page.translations?.zh?.name);
-              return (
-                <Route 
-                  key={routePath}
-                  path={routePath}
-                  element={<CustomPageDebugWrapper page={page} />}
-                />
-              );
-            });
-          })()}
+          {currentData.customPages?.map(page => (
+            <Route 
+              key={page.id}
+              path={`/${page.slug}`} 
+              element={
+                <div className="min-h-screen pt-24 pb-20 bg-slate-50">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div 
+                      className="custom-page-content prose prose-lg max-w-none bg-white rounded-3xl shadow-sm p-8"
+                      dangerouslySetInnerHTML={{ __html: page.translations[language].content }}
+                    />
+                  </div>
+                </div>
+              } 
+            />
+          ))}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>
