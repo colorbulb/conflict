@@ -398,8 +398,24 @@ export const initializeFirestore = async (initialData) => {
 // Unified custom pages (translations in one doc)
 export const getCustomPages = async () => {
   try {
-    const snapshot = await getDocs(collection(db, 'custom_pages'));
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Fetch both en_pages and zh_pages
+    const [enSnap, zhSnap] = await Promise.all([
+      getDocs(collection(db, 'en_pages')),
+      getDocs(collection(db, 'zh_pages'))
+    ]);
+    // Map by id for merging
+    const enPages = {};
+    enSnap.docs.forEach(doc => {
+      enPages[doc.id] = { id: doc.id, slug: doc.data().slug, createdAt: doc.data().createdAt, updatedAt: doc.data().updatedAt, translations: { en: doc.data() } };
+    });
+    zhSnap.docs.forEach(doc => {
+      if (enPages[doc.id]) {
+        enPages[doc.id].translations.zh = doc.data();
+      } else {
+        enPages[doc.id] = { id: doc.id, slug: doc.data().slug, createdAt: doc.data().createdAt, updatedAt: doc.data().updatedAt, translations: { zh: doc.data() } };
+      }
+    });
+    return Object.values(enPages);
   } catch (error) {
     console.error('Error fetching custom pages:', error);
     return [];
