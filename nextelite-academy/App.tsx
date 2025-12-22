@@ -139,6 +139,11 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
             menuItems: zhData?.menuItems || prev.zh.menuItems || []
           }
         }));
+        
+        // Debug logging for custom pages
+        console.log('[App] Custom pages loaded from Firestore:');
+        console.log('[App] EN custom pages:', enData?.customPages);
+        console.log('[App] ZH custom pages:', zhData?.customPages);
       } catch (error) {
         console.error('Error loading data from Firestore:', error);
         // Fallback to INITIAL_DATA if Firestore fails
@@ -1023,10 +1028,14 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
           <Route path="/contact" element={<ContactPage />} />
           {/* Dynamic custom pages */}
           {(() => {
-            console.log('[CustomPageRoute] customPages:', currentData.customPages);
+            console.log('[CustomPageRoute] isLoading:', isLoading);
+            console.log('[CustomPageRoute] currentData.customPages:', currentData.customPages);
+            if (currentData.customPages && currentData.customPages.length > 0) {
+              console.log('[CustomPageRoute] Registering', currentData.customPages.length, 'custom page routes');
+            }
             return currentData.customPages?.map(page => {
               const routePath = `/${page.slug}`;
-              console.log('[CustomPageRoute] Registering route:', routePath);
+              console.log('[CustomPageRoute] Registering route:', routePath, 'for page:', page.translations?.en?.name || page.translations?.zh?.name);
               return (
                 <Route 
                   key={routePath}
