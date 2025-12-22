@@ -23,9 +23,7 @@ interface CMSDashboardProps {
   translations: TranslationsType;
   pageContent: PageContent;
   lookupLists: { ageGroups: string[]; courseCategories: string[]; blogCategories: string[] };
-  customPages?: CustomPage[];
-  enCustomPages?: CustomPage[];
-  zhCustomPages?: CustomPage[];
+    customPages?: CustomPage[];
   menuItems?: MenuItem[];
   enMenuItems?: MenuItem[];
   zhMenuItems?: MenuItem[];
@@ -78,23 +76,9 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [editingInstructor, setEditingInstructor] = useState<Instructor | null>(null);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
-  const [editingPage, setEditingPage] = useState<CustomPage | null>(null);
-  const [pageEditingLang, setPageEditingLang] = useState<'en' | 'zh'>('en');
-  const [localEnCustomPages, setLocalEnCustomPages] = useState<CustomPage[]>(enCustomPages);
-  const [localZhCustomPages, setLocalZhCustomPages] = useState<CustomPage[]>(zhCustomPages);
-  
-  // Update local custom pages when props change
-  useEffect(() => {
-    setLocalEnCustomPages(enCustomPages);
-  }, [enCustomPages]);
-  
-  useEffect(() => {
-    setLocalZhCustomPages(zhCustomPages);
-  }, [zhCustomPages]);
-  
-  // Get current custom pages based on editing language
-  const currentCustomPages = pageEditingLang === 'en' ? localEnCustomPages : localZhCustomPages;
-  const setCurrentCustomPages = pageEditingLang === 'en' ? setLocalEnCustomPages : setLocalZhCustomPages;
+    const [editingPage, setEditingPage] = useState<CustomPage | null>(null);
+    const [localCustomPages, setLocalCustomPages] = useState<CustomPage[]>(customPages || []);
+    useEffect(() => { setLocalCustomPages(customPages || []); }, [customPages]);
   const [activeTab, setActiveTab] = useState<'courses' | 'blog' | 'instructors' | 'settings' | 'inquiries' | 'homepage' | 'lookups' | 'pages' | 'menu'>(initialTab);
   
   // Sync activeTab with URL
@@ -2768,49 +2752,34 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                     <div className="flex justify-between items-center mb-4">
                         <div>
                             <h3 className="text-lg font-bold text-gray-800">Custom Pages</h3>
-                            <p className="text-sm text-gray-600 mt-1">Manage custom pages for your website. Each language has its own set of pages.</p>
+                            <p className="text-sm text-gray-600 mt-1">Manage custom pages for your website. Each page supports both English and Traditional Chinese.</p>
                         </div>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => setPageEditingLang('en')}
-                                className={`px-4 py-2 rounded-lg font-bold transition-colors ${pageEditingLang === 'en' ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                            >
-                                English
-                            </button>
-                            <button
-                                onClick={() => setPageEditingLang('zh')}
-                                className={`px-4 py-2 rounded-lg font-bold transition-colors ${pageEditingLang === 'zh' ? 'bg-brand-blue text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                            >
-                                繁體中文
-                            </button>
-                        </div>
+                        <button
+                            onClick={() => {
+                                const newPage: CustomPage = {
+                                    id: Math.random().toString(36).substr(2, 9),
+                                    slug: '',
+                                    translations: {
+                                        en: { name: '', content: '', layoutBlocks: undefined },
+                                        zh: { name: '', content: '', layoutBlocks: undefined }
+                                    },
+                                    createdAt: new Date().toISOString(),
+                                    updatedAt: new Date().toISOString()
+                                };
+                                setEditingPage(newPage);
+                            }}
+                            className="bg-brand-blue text-white px-6 py-2 rounded-full font-bold flex items-center gap-2 hover:bg-blue-600 shadow-lg shadow-blue-200 transition-all"
+                        >
+                            <Plus className="w-5 h-5" /> New Page
+                        </button>
                     </div>
                 </div>
-                <div className="flex justify-end">
-                    <button 
-                        onClick={() => {
-                            const newPage: CustomPage = {
-                                id: Math.random().toString(36).substr(2, 9),
-                                slug: '',
-                                name: 'New Page',
-                                content: '',
-                                layoutBlocks: undefined,
-                                createdAt: new Date().toISOString(),
-                                updatedAt: new Date().toISOString()
-                            };
-                            setEditingPage(newPage);
-                        }}
-                        className="bg-brand-blue text-white px-6 py-2 rounded-full font-bold flex items-center gap-2 hover:bg-blue-600 shadow-lg shadow-blue-200 transition-all"
-                    >
-                        <Plus className="w-5 h-5" /> New Page
-                    </button>
-                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {currentCustomPages.map(page => (
+                    {localCustomPages.map(page => (
                         <div key={page.id} className="bg-white p-4 rounded-2xl border border-gray-100 flex flex-col gap-4 group hover:shadow-xl transition-all">
                             <div className="flex justify-between items-start">
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="font-bold text-gray-800 truncate">{page.name}</h3>
+                                    <h3 className="font-bold text-gray-800 truncate">{page.translations.en.name || page.translations.zh.name}</h3>
                                     <p className="text-xs text-gray-400 mt-1">/{page.slug}</p>
                                     <p className="text-xs text-gray-500 mt-2">Updated: {new Date(page.updatedAt).toLocaleDateString()}</p>
                                 </div>
@@ -2821,9 +2790,9 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                     <button 
                                         onClick={() => {
                                             if (confirm('Delete this page?')) {
-                                                const newPages = currentCustomPages.filter(p => p.id !== page.id);
-                                                setCurrentCustomPages(newPages);
-                                                if (onUpdateCustomPages) onUpdateCustomPages(newPages, pageEditingLang);
+                                                const newPages = localCustomPages.filter(p => p.id !== page.id);
+                                                setLocalCustomPages(newPages);
+                                                if (onUpdateCustomPages) onUpdateCustomPages(newPages);
                                             }
                                         }}
                                         className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
@@ -2835,6 +2804,25 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                         </div>
                     ))}
                 </div>
+                {editingPage && (
+                    <CustomPageEditor
+                        editingPage={editingPage}
+                        setEditingPage={setEditingPage}
+                        onSave={(page) => {
+                            const isNew = !localCustomPages.find(p => p.id === page.id);
+                            let newPages = [...localCustomPages];
+                            if (isNew) {
+                                newPages.push(page);
+                            } else {
+                                newPages = newPages.map(p => p.id === page.id ? page : p);
+                            }
+                            setLocalCustomPages(newPages);
+                            if (onUpdateCustomPages) onUpdateCustomPages(newPages);
+                            setEditingPage(null);
+                        }}
+                        currentCustomPages={localCustomPages}
+                    />
+                )}
             </div>
         )}
 
@@ -3552,4 +3540,4 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
   );
 };
 
-export default CMSDashboard;
+export default CMSDashboard;    
