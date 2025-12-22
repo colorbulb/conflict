@@ -292,23 +292,31 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
   };
 
   const handleUpdateCustomPages = async (pages: CustomPage[]) => {
-    setDb(prev => ({
-      ...prev,
-      en: {
-        ...prev.en,
-        customPages: pages
-      },
-      zh: {
-        ...prev.zh,
-        customPages: pages
-      }
-    }));
     try {
+      // First save to Firestore
       await saveCustomPages(pages);
+      
+      // Then update local state
+      setDb(prev => ({
+        ...prev,
+        en: {
+          ...prev.en,
+          customPages: pages
+        },
+        zh: {
+          ...prev.zh,
+          customPages: pages
+        }
+      }));
+      
+      // Wait a tick for React to re-render with the new routes
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       alert('Custom pages saved successfully!');
     } catch (err) {
       console.error('Error saving custom pages:', err);
       alert('Error saving custom pages: ' + (err instanceof Error ? err.message : String(err)));
+      throw err; // Re-throw so caller knows it failed
     }
   };
 
