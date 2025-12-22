@@ -10,6 +10,7 @@ import { uploadImage, uploadPDF, uploadMultipleImages } from '../firebase/storag
 import { ICONS } from '../constants';
 import PDFViewer from './PDFViewer';
 import LayoutBuilder, { LayoutBlock } from './LayoutBuilder';
+import CustomPageEditor from './dashboard/CustomPageEditor';
 
 type TranslationsType = typeof initialTranslations;
 
@@ -2753,21 +2754,47 @@ const CMSDashboard: React.FC<CMSDashboardProps> = ({
                                                         <option value="link">Link (External URL)</option>
                                                         <option value="custom">Custom Route</option>
                                                     </select>
-                                                    <input
-                                                        type="text"
-                                                        value={item.target}
-                                                        onChange={(e) => {
-                                                            const newItems = currentMenuItems.map(i => 
-                                                                i.id === item.id ? { ...i, target: e.target.value } : i
-                                                            );
-                                                            setCurrentMenuItems(newItems);
-                                                        }}
-                                                        onBlur={() => {
-                                                            if (onUpdateMenuItems) onUpdateMenuItems(currentMenuItems, menuEditingLang);
-                                                        }}
-                                                        className="flex-1 border rounded px-2 py-1 text-xs font-mono"
-                                                        placeholder={item.type === 'page' ? 'page-slug' : item.type === 'link' ? 'https://...' : '/route'}
-                                                    />
+                                                    {item.type === 'page' ? (
+                                                        <div className="relative w-full">
+                                                            <input
+                                                                type="text"
+                                                                value={item.target}
+                                                                onChange={(e) => {
+                                                                    const newItems = currentMenuItems.map(i => 
+                                                                        i.id === item.id ? { ...i, target: e.target.value } : i
+                                                                    );
+                                                                    setCurrentMenuItems(newItems);
+                                                                }}
+                                                                onBlur={() => {
+                                                                    if (onUpdateMenuItems) onUpdateMenuItems(currentMenuItems, menuEditingLang);
+                                                                }}
+                                                                className="flex-1 border rounded px-2 py-1 text-xs font-mono"
+                                                                placeholder="page-slug"
+                                                                list={`slug-options-${menuEditingLang}`}
+                                                            />
+                                                            <datalist id={`slug-options-${menuEditingLang}`}>
+                                                                {localCustomPages.map(page => (
+                                                                    <option key={page.id} value={page.slug} />
+                                                                ))}
+                                                            </datalist>
+                                                        </div>
+                                                    ) : (
+                                                        <input
+                                                            type="text"
+                                                            value={item.target}
+                                                            onChange={(e) => {
+                                                                const newItems = currentMenuItems.map(i => 
+                                                                    i.id === item.id ? { ...i, target: e.target.value } : i
+                                                                );
+                                                                setCurrentMenuItems(newItems);
+                                                            }}
+                                                            onBlur={() => {
+                                                                if (onUpdateMenuItems) onUpdateMenuItems(currentMenuItems, menuEditingLang);
+                                                            }}
+                                                            className="flex-1 border rounded px-2 py-1 text-xs font-mono"
+                                                            placeholder={item.type === 'link' ? 'https://...' : '/route'}
+                                                        />
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="flex flex-col gap-2">
