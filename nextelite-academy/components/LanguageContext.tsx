@@ -12,11 +12,24 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export const LanguageProvider: React.FC<{ 
+
+export const LanguageProvider: React.FC<{
   children: React.ReactNode;
   translations?: TranslationsType;
 }> = ({ children, translations = initialTranslations }) => {
-  const [language, setLanguage] = useState<Language>('en');
+  // Initialize from localStorage if available
+  const getInitialLanguage = (): Language => {
+    const stored = localStorage.getItem('selectedLanguage');
+    if (stored === 'zh' || stored === 'en') return stored;
+    return 'en';
+  };
+  const [language, setLanguageState] = useState<Language>(getInitialLanguage());
+
+  // Update localStorage when language changes
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    localStorage.setItem('selectedLanguage', lang);
+  };
 
   const value = {
     language,

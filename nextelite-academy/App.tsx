@@ -245,17 +245,21 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
       saveTrialSettings(settings, 'zh').catch(err => console.error('Error saving trial settings (zh):', err));
   };
 
-  const handleUpdatePageContent = (pageContent: typeof INITIAL_DATA.en.pageContent) => {
-      setDb(prev => ({
-          ...prev,
-          [language]: {
-              ...prev[language],
-              pageContent
-          }
-      }));
-
-      // Persist homepage content for current language
-      savePageContent(pageContent, language).catch(err => console.error('Error saving page content:', err));
+  const handleUpdatePageContent = async (pageContent: typeof INITIAL_DATA.en.pageContent) => {
+    setDb(prev => ({
+      ...prev,
+      [language]: {
+        ...prev[language],
+        pageContent
+      }
+    }));
+    try {
+      await savePageContent(pageContent, language);
+      return true;
+    } catch (err) {
+      console.error('Error saving page content:', err);
+      throw err;
+    }
   };
 
   const handleUpdateLookupLists = (lookupLists: typeof INITIAL_DATA.en.lookupLists) => {

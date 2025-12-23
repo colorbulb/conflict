@@ -1,23 +1,39 @@
 import React, { useState } from 'react';
 import { Lock } from 'lucide-react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase/config';
 
 interface AdminLoginProps {
   onLogin: () => void;
 }
 
 const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
-  const [username, setUsername] = useState('');
+
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'adminpw') {
-      // Save login state to localStorage for persistence
-      localStorage.setItem('adminLoggedIn', 'true');
-      onLogin();
-    } else {
-      setError('Invalid credentials');
+    setError('');
+    setLoading(true);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      // Get ID token result to check custom claims
+      const idTokenResult = await user.getIdTokenResult(true);
+      if (idTokenResult.claims.admin) {
+        localStorage.setItem('adminLoggedIn', 'true');
+        onLogin();
+      } else {
+        setError('You do not have admin access.');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Login failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -34,12 +50,13 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input 
-              type="text" 
+              type="email" 
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
             />
           </div>
           <div>
@@ -49,6 +66,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-brand-blue focus:border-transparent outline-none"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
             />
           </div>
           
@@ -56,14 +74,15 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
 
           <button 
             type="submit"
-            className="w-full bg-brand-blue text-white py-2 rounded-lg font-bold hover:bg-blue-600 transition-colors"
+            className="w-full bg-brand-blue text-white py-2 rounded-lg font-bold hover:bg-blue-600 transition-colors disabled:opacity-60"
+            disabled={loading}
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
-        <div className="mt-4 text-center text-xs text-gray-400">
-           Credentials: admin / adminpw
-        </div>
+          <div className="mt-4 text-center text-xs text-gray-400">
+            Login with your admin email and password
+          </div>
       </div>
     </div>
   );
