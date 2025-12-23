@@ -17,12 +17,30 @@ const HomepageTab: React.FC<HomepageTabProps> = ({ pageContent, onUpdatePageCont
     setLocalPageContent(pageContent);
   }, [pageContent]);
 
-  const handleSave = () => {
-    onUpdatePageContent(localPageContent);
+  const handleSave = async () => {
+    try {
+      await onUpdatePageContent(localPageContent);
+      alert('Homepage content saved successfully!');
+    } catch (err) {
+      alert('Failed to save homepage content. Please try again.');
+    }
   };
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Instructor Section Toggle */}
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+        <label className="text-lg font-bold text-gray-800 flex-1">Show Instructor Section</label>
+        <input
+          type="checkbox"
+          checked={!!localPageContent.showInstructors}
+          onChange={e => setLocalPageContent({
+            ...localPageContent,
+            showInstructors: e.target.checked
+          })}
+          className="w-6 h-6 accent-brand-blue"
+        />
+      </div>
       {/* Hero Section */}
       <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
         <h3 className="text-xl font-bold text-gray-800 mb-6">Hero Section</h3>

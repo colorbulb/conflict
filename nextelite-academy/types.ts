@@ -163,6 +163,7 @@ export interface PageContent {
     about?: 'default' | 'width' | 'height';
   };
   logo?: string;
+  showInstructors?: boolean; // Toggle for instructor section visibility
 }
 
 export interface CustomPage {

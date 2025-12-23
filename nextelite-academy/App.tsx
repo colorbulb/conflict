@@ -575,61 +575,63 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
         </section>
 
         {/* Instructors Section */}
-        <section id={Section.INSTRUCTORS} className="py-20 bg-slate-50 relative overflow-hidden">
-          {/* Optional Mentors Background */}
-          {pageContent.backgrounds?.mentors && (
-            pageContent.backgrounds.mentors.toLowerCase().endsWith('.mp4') ? (
-              <video
-                {...getBackgroundStyles('mentors', true)}
-                autoPlay
-                loop
-                muted
-                playsInline
-              >
-                <source src={pageContent.backgrounds.mentors} type="video/mp4" />
-              </video>
-            ) : (
-              <div
-                {...getBackgroundStyles('mentors', false)}
-                style={{ ...getBackgroundStyles('mentors', false).style, backgroundImage: `url(${pageContent.backgrounds.mentors})` }}
-              />
-            )
-          )}
-
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-display font-bold text-gray-900 mb-4">{pageContent.sections.mentors.heading}</h2>
-              <p className="text-gray-900 text-lg">{pageContent.sections.mentors.subheading}</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {currentData.instructors && currentData.instructors.length > 0 ? (
-                currentData.instructors.map((instructor, idx) => (
-                  <motion.div 
-                    key={instructor.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="bg-white p-8 rounded-3xl shadow-md text-center group hover:shadow-2xl transition-all duration-300 border border-gray-100"
-                  >
-                    <div className="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden border-4 border-brand-yellow group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                      <img src={instructor.imageUrl} alt={instructor.name} className="w-full h-full object-cover" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-1">{instructor.name}</h3>
-                    <p className="text-brand-blue font-bold text-sm mb-4 uppercase tracking-wide">{instructor.role}</p>
-                    <p className="text-gray-900 leading-relaxed">{instructor.bio}</p>
-                  </motion.div>
-                ))
+        {pageContent.showInstructors !== false && (
+          <section id={Section.INSTRUCTORS} className="py-20 bg-slate-50 relative overflow-hidden">
+            {/* Optional Mentors Background */}
+            {pageContent.backgrounds?.mentors && (
+              pageContent.backgrounds.mentors.toLowerCase().endsWith('.mp4') ? (
+                <video
+                  {...getBackgroundStyles('mentors', true)}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                >
+                  <source src={pageContent.backgrounds.mentors} type="video/mp4" />
+                </video>
               ) : (
-                <div className="col-span-3 text-center py-12 text-gray-500">
-                  <p className="text-lg">No instructors available yet.</p>
-                  <p className="text-sm mt-2">Add instructors in the CMS to display them here.</p>
-                </div>
-              )}
+                <div
+                  {...getBackgroundStyles('mentors', false)}
+                  style={{ ...getBackgroundStyles('mentors', false).style, backgroundImage: `url(${pageContent.backgrounds.mentors})` }}
+                />
+              )
+            )}
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+              <div className="text-center mb-16">
+                <h2 className="text-4xl font-display font-bold text-gray-900 mb-4">{pageContent.sections.mentors.heading}</h2>
+                <p className="text-gray-900 text-lg">{pageContent.sections.mentors.subheading}</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {currentData.instructors && currentData.instructors.length > 0 ? (
+                  currentData.instructors.map((instructor, idx) => (
+                    <motion.div 
+                      key={instructor.id}
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.1 }}
+                      className="bg-white p-8 rounded-3xl shadow-md text-center group hover:shadow-2xl transition-all duration-300 border border-gray-100"
+                    >
+                      <div className="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden border-4 border-brand-yellow group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                        <img src={instructor.imageUrl} alt={instructor.name} className="w-full h-full object-cover" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-1">{instructor.name}</h3>
+                      <p className="text-brand-blue font-bold text-sm mb-4 uppercase tracking-wide">{instructor.role}</p>
+                      <p className="text-gray-900 leading-relaxed">{instructor.bio}</p>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="col-span-3 text-center py-12 text-gray-500">
+                    <p className="text-lg">No instructors available yet.</p>
+                    <p className="text-sm mt-2">Add instructors in the CMS to display them here.</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* Gallery Section */}
         <section id={Section.GALLERY} className="py-20 bg-white relative overflow-hidden">
