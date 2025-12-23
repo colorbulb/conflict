@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Instructor } from '../../types';
 import { Plus, Edit } from 'lucide-react';
+import InstructorEditor from './editors/InstructorEditor';
 
 interface InstructorsTabProps {
   instructors: Instructor[];
@@ -16,11 +17,28 @@ const InstructorsTab: React.FC<InstructorsTabProps> = ({ instructors, onUpdateIn
       name: 'New Instructor',
       role: '',
       imageUrl: '',
-      bio: ''
+      bio: '',
+      socialMedia: {},
+      certifications: []
     };
     setEditingInstructor(newInstructor);
   };
 
+  // If editing, show the InstructorEditor component
+  if (editingInstructor) {
+    return (
+      <InstructorEditor
+        instructor={editingInstructor}
+        onSave={(instructor) => {
+          onUpdateInstructor(instructor);
+          setEditingInstructor(null);
+        }}
+        onCancel={() => setEditingInstructor(null)}
+      />
+    );
+  }
+
+  // Otherwise show the instructors list
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex justify-end">
@@ -66,40 +84,6 @@ const InstructorsTab: React.FC<InstructorsTabProps> = ({ instructors, onUpdateIn
           >
             Add your first instructor
           </button>
-        </div>
-      )}
-
-      {/* TODO: Add instructor editor modal when editingInstructor is not null */}
-      {/* Extract the full instructor editor from old CMSDashboard.tsx */}
-      {editingInstructor && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-8">
-              <h3 className="text-2xl font-bold mb-6">
-                {instructors.find(i => i.id === editingInstructor.id) ? 'Edit' : 'New'} Instructor
-              </h3>
-              <p className="text-gray-500 mb-4">
-                Extract full instructor editor from old CMSDashboard.tsx
-              </p>
-              <div className="flex gap-2 justify-end">
-                <button
-                  onClick={() => setEditingInstructor(null)}
-                  className="px-6 py-2 rounded-full border border-gray-300 font-bold hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    onUpdateInstructor(editingInstructor);
-                    setEditingInstructor(null);
-                  }}
-                  className="px-6 py-2 rounded-full bg-brand-blue text-white font-bold hover:bg-blue-600"
-                >
-                  Save Instructor
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </div>

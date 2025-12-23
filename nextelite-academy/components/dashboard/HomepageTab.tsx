@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { PageContent } from '../../types';
 import { Save } from 'lucide-react';
+import AboutSection from './homepage/AboutSection';
+import MediaSection from './homepage/MediaSection';
+import BackgroundSection from './homepage/BackgroundSection';
 
 interface HomepageTabProps {
   pageContent: PageContent;
-  language: 'en' | 'zh';
-  onUpdatePageContent: (pageContent: PageContent) => void;
+  onUpdatePageContent: (content: PageContent) => void;
 }
 
-const HomepageTab: React.FC<HomepageTabProps> = ({ 
-  pageContent, 
-  language, 
-  onUpdatePageContent 
-}) => {
+const HomepageTab: React.FC<HomepageTabProps> = ({ pageContent, onUpdatePageContent }) => {
   const [localPageContent, setLocalPageContent] = useState<PageContent>(pageContent);
-  
+
   useEffect(() => {
     setLocalPageContent(pageContent);
   }, [pageContent]);
@@ -24,253 +22,210 @@ const HomepageTab: React.FC<HomepageTabProps> = ({
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Homepage Content Editor</h2>
-          <button
-            onClick={handleSave}
-            className="flex items-center gap-2 px-6 py-2 rounded-full bg-brand-blue text-white font-bold hover:bg-blue-600 shadow-sm transition-transform hover:scale-105"
-          >
-            <Save className="w-4 h-4" /> Save Homepage
-          </button>
-        </div>
-
-        <div className="space-y-8">
-          {/* Hero Section */}
-          <div className="border-b border-gray-100 pb-6">
-            <h4 className="text-lg font-bold text-gray-800 mb-4">Hero Section</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Title Line 1</label>
-                <input
-                  value={localPageContent.hero.titleLine1}
-                  onChange={(e) =>
-                    setLocalPageContent({
-                      ...localPageContent,
-                      hero: { ...localPageContent.hero, titleLine1: e.target.value }
-                    })
-                  }
-                  className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Title Line 2</label>
-                <input
-                  value={localPageContent.hero.titleLine2}
-                  onChange={(e) =>
-                    setLocalPageContent({
-                      ...localPageContent,
-                      hero: { ...localPageContent.hero, titleLine2: e.target.value }
-                    })
-                  }
-                  className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-bold text-gray-700 mb-1">Subtitle</label>
-                <textarea
-                  value={localPageContent.hero.subtitle}
-                  onChange={(e) =>
-                    setLocalPageContent({
-                      ...localPageContent,
-                      hero: { ...localPageContent.hero, subtitle: e.target.value }
-                    })
-                  }
-                  className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
-                  rows={2}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Explore Button Text</label>
-                <input
-                  value={localPageContent.hero.exploreButton}
-                  onChange={(e) =>
-                    setLocalPageContent({
-                      ...localPageContent,
-                      hero: { ...localPageContent.hero, exploreButton: e.target.value }
-                    })
-                  }
-                  className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Trial Button Text</label>
-                <input
-                  value={localPageContent.hero.trialButton}
-                  onChange={(e) =>
-                    setLocalPageContent({
-                      ...localPageContent,
-                      hero: { ...localPageContent.hero, trialButton: e.target.value }
-                    })
-                  }
-                  className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Section Headings */}
-          <div className="border-b border-gray-100 pb-6">
-            <h4 className="text-lg font-bold text-gray-800 mb-4">Section Headings</h4>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Programs Heading</label>
-                  <input
-                    value={localPageContent.sections.programs.heading}
-                    onChange={(e) =>
-                      setLocalPageContent({
-                        ...localPageContent,
-                        sections: {
-                          ...localPageContent.sections,
-                          programs: { ...localPageContent.sections.programs, heading: e.target.value }
-                        }
-                      })
-                    }
-                    className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Programs Subheading</label>
-                  <input
-                    value={localPageContent.sections.programs.subheading}
-                    onChange={(e) =>
-                      setLocalPageContent({
-                        ...localPageContent,
-                        sections: {
-                          ...localPageContent.sections,
-                          programs: { ...localPageContent.sections.programs, subheading: e.target.value }
-                        }
-                      })
-                    }
-                    className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Mentors Heading</label>
-                  <input
-                    value={localPageContent.sections.mentors.heading}
-                    onChange={(e) =>
-                      setLocalPageContent({
-                        ...localPageContent,
-                        sections: {
-                          ...localPageContent.sections,
-                          mentors: { ...localPageContent.sections.mentors, heading: e.target.value }
-                        }
-                      })
-                    }
-                    className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Mentors Subheading</label>
-                  <input
-                    value={localPageContent.sections.mentors.subheading}
-                    onChange={(e) =>
-                      setLocalPageContent({
-                        ...localPageContent,
-                        sections: {
-                          ...localPageContent.sections,
-                          mentors: { ...localPageContent.sections.mentors, subheading: e.target.value }
-                        }
-                      })
-                    }
-                    className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1">Gallery Heading</label>
-                  <input
-                    value={localPageContent.sections.gallery.heading}
-                    onChange={(e) =>
-                      setLocalPageContent({
-                        ...localPageContent,
-                        sections: {
-                          ...localPageContent.sections,
-                          gallery: { ...localPageContent.sections.gallery, heading: e.target.value }
-                        }
-                      })
-                    }
-                    className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Contact Section */}
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Hero Section */}
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <h3 className="text-xl font-bold text-gray-800 mb-6">Hero Section</h3>
+        <div className="space-y-4">
           <div>
-            <h4 className="text-lg font-bold text-gray-800 mb-4">Contact Section</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Heading</label>
-                <input
-                  value={localPageContent.sections.contact.heading}
-                  onChange={(e) =>
-                    setLocalPageContent({
-                      ...localPageContent,
-                      sections: {
-                        ...localPageContent.sections,
-                        contact: { ...localPageContent.sections.contact, heading: e.target.value }
-                      }
-                    })
-                  }
-                  className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Subheading</label>
-                <input
-                  value={localPageContent.sections.contact.subheading}
-                  onChange={(e) =>
-                    setLocalPageContent({
-                      ...localPageContent,
-                      sections: {
-                        ...localPageContent.sections,
-                        contact: { ...localPageContent.sections.contact, subheading: e.target.value }
-                      }
-                    })
-                  }
-                  className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Address</label>
-                <input
-                  value={localPageContent.sections.contact.address}
-                  onChange={(e) =>
-                    setLocalPageContent({
-                      ...localPageContent,
-                      sections: {
-                        ...localPageContent.sections,
-                        contact: { ...localPageContent.sections.contact, address: e.target.value }
-                      }
-                    })
-                  }
-                  className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">Email</label>
-                <input
-                  value={localPageContent.sections.contact.email}
-                  onChange={(e) =>
-                    setLocalPageContent({
-                      ...localPageContent,
-                      sections: {
-                        ...localPageContent.sections,
-                        contact: { ...localPageContent.sections.contact, email: e.target.value }
-                      }
-                    })
-                  }
-                  className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
-                />
-              </div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Title Line 1</label>
+            <input
+              value={localPageContent.hero.titleLine1}
+              onChange={(e) =>
+                setLocalPageContent({
+                  ...localPageContent,
+                  hero: { ...localPageContent.hero, titleLine1: e.target.value }
+                })
+              }
+              className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Title Line 2</label>
+            <input
+              value={localPageContent.hero.titleLine2}
+              onChange={(e) =>
+                setLocalPageContent({
+                  ...localPageContent,
+                  hero: { ...localPageContent.hero, titleLine2: e.target.value }
+                })
+              }
+              className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Subtitle</label>
+            <input
+              value={localPageContent.hero.subtitle}
+              onChange={(e) =>
+                setLocalPageContent({
+                  ...localPageContent,
+                  hero: { ...localPageContent.hero, subtitle: e.target.value }
+                })
+              }
+              className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
+            />
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Primary Button Text</label>
+              <input
+                value={localPageContent.hero.primaryButtonText}
+                onChange={(e) =>
+                  setLocalPageContent({
+                    ...localPageContent,
+                    hero: { ...localPageContent.hero, primaryButtonText: e.target.value }
+                  })
+                }
+                className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Secondary Button Text</label>
+              <input
+                value={localPageContent.hero.secondaryButtonText}
+                onChange={(e) =>
+                  setLocalPageContent({
+                    ...localPageContent,
+                    hero: { ...localPageContent.hero, secondaryButtonText: e.target.value }
+                  })
+                }
+                className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
+              />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Section Headings */}
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <h3 className="text-xl font-bold text-gray-800 mb-6">Section Headings</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Programs Section</label>
+            <input
+              value={localPageContent.sectionHeadings.programs}
+              onChange={(e) =>
+                setLocalPageContent({
+                  ...localPageContent,
+                  sectionHeadings: { ...localPageContent.sectionHeadings, programs: e.target.value }
+                })
+              }
+              className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Mentors Section</label>
+            <input
+              value={localPageContent.sectionHeadings.mentors}
+              onChange={(e) =>
+                setLocalPageContent({
+                  ...localPageContent,
+                  sectionHeadings: { ...localPageContent.sectionHeadings, mentors: e.target.value }
+                })
+              }
+              className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Gallery Section</label>
+            <input
+              value={localPageContent.sectionHeadings.gallery}
+              onChange={(e) =>
+                setLocalPageContent({
+                  ...localPageContent,
+                  sectionHeadings: { ...localPageContent.sectionHeadings, gallery: e.target.value }
+                })
+              }
+              className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* About Us Section Component */}
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <AboutSection pageContent={localPageContent} onUpdate={setLocalPageContent} />
+      </div>
+
+      {/* Media Section Component (Logo + Gallery) */}
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <MediaSection pageContent={localPageContent} onUpdate={setLocalPageContent} />
+      </div>
+
+      {/* Background Images Component */}
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <BackgroundSection pageContent={localPageContent} onUpdate={setLocalPageContent} />
+      </div>
+
+      {/* Contact Section */}
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        <h3 className="text-xl font-bold text-gray-800 mb-6">Contact Section</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Heading</label>
+            <input
+              value={localPageContent.contact.heading}
+              onChange={(e) =>
+                setLocalPageContent({
+                  ...localPageContent,
+                  contact: { ...localPageContent.contact, heading: e.target.value }
+                })
+              }
+              className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Subheading</label>
+            <input
+              value={localPageContent.contact.subheading}
+              onChange={(e) =>
+                setLocalPageContent({
+                  ...localPageContent,
+                  contact: { ...localPageContent.contact, subheading: e.target.value }
+                })
+              }
+              className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Address</label>
+            <input
+              value={localPageContent.contact.address}
+              onChange={(e) =>
+                setLocalPageContent({
+                  ...localPageContent,
+                  contact: { ...localPageContent.contact, address: e.target.value }
+                })
+              }
+              className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">Email</label>
+            <input
+              value={localPageContent.contact.email}
+              onChange={(e) =>
+                setLocalPageContent({
+                  ...localPageContent,
+                  contact: { ...localPageContent.contact, email: e.target.value }
+                })
+              }
+              className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Save Button */}
+      <button
+        onClick={handleSave}
+        className="w-full bg-brand-blue text-white py-4 rounded-xl font-bold hover:bg-blue-600 flex justify-center items-center gap-2 shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1"
+      >
+        <Save className="w-5 h-5" /> Save Homepage Content
+      </button>
     </div>
   );
 };

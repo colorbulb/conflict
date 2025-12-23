@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Course } from '../../types';
 import { Plus, Edit } from 'lucide-react';
+import CourseEditor from './editors/CourseEditor';
 
 interface CoursesTabProps {
   courses: Course[];
@@ -18,16 +19,37 @@ const CoursesTab: React.FC<CoursesTabProps> = ({ courses, lookupLists, onUpdateC
       description: '',
       ageGroup: [],
       color: 'bg-brand-blue',
-      icon: '📚',
-      features: [],
+      icon: 'graduation',
+      outline: [''],
+      attachments: [],
+      quiz: { questions: [] },
       price: 0,
       duration: '',
       category: lookupLists.courseCategories?.[0] || 'General',
-      imageUrl: ''
+      imageUrl: '',
+      fullDescription: '',
+      headerBackgroundImage: '',
+      headerBackgroundOpacity: 0.2
     };
     setEditingCourse(newCourse);
   };
 
+  // If editing, show the CourseEditor component
+  if (editingCourse) {
+    return (
+      <CourseEditor
+        course={editingCourse}
+        lookupLists={lookupLists}
+        onSave={(course) => {
+          onUpdateCourse(course);
+          setEditingCourse(null);
+        }}
+        onCancel={() => setEditingCourse(null)}
+      />
+    );
+  }
+
+  // Otherwise show the courses list
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex justify-end">
@@ -72,40 +94,6 @@ const CoursesTab: React.FC<CoursesTabProps> = ({ courses, lookupLists, onUpdateC
           >
             Create your first course
           </button>
-        </div>
-      )}
-
-      {/* TODO: Add course editor modal when editingCourse is not null */}
-      {/* You'll need to extract the course editor from the old CMSDashboard.tsx */}
-      {editingCourse && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-8">
-              <h3 className="text-2xl font-bold mb-6">
-                {courses.find(c => c.id === editingCourse.id) ? 'Edit' : 'New'} Course
-              </h3>
-              <p className="text-gray-500 mb-4">
-                Extract full course editor from old CMSDashboard.tsx
-              </p>
-              <div className="flex gap-2 justify-end">
-                <button
-                  onClick={() => setEditingCourse(null)}
-                  className="px-6 py-2 rounded-full border border-gray-300 font-bold hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    onUpdateCourse(editingCourse);
-                    setEditingCourse(null);
-                  }}
-                  className="px-6 py-2 rounded-full bg-brand-blue text-white font-bold hover:bg-blue-600"
-                >
-                  Save Course
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </div>
