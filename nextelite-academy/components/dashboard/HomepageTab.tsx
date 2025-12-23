@@ -30,7 +30,7 @@ const HomepageTab: React.FC<HomepageTabProps> = ({ pageContent, onUpdatePageCont
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Title Line 1</label>
             <input
-              value={localPageContent.hero.titleLine1}
+              value={localPageContent.hero?.titleLine1 || ''}
               onChange={(e) =>
                 setLocalPageContent({
                   ...localPageContent,
@@ -43,7 +43,7 @@ const HomepageTab: React.FC<HomepageTabProps> = ({ pageContent, onUpdatePageCont
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Title Line 2</label>
             <input
-              value={localPageContent.hero.titleLine2}
+              value={localPageContent.hero?.titleLine2 || ''}
               onChange={(e) =>
                 setLocalPageContent({
                   ...localPageContent,
@@ -56,7 +56,7 @@ const HomepageTab: React.FC<HomepageTabProps> = ({ pageContent, onUpdatePageCont
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Subtitle</label>
             <input
-              value={localPageContent.hero.subtitle}
+              value={localPageContent.hero?.subtitle || ''}
               onChange={(e) =>
                 setLocalPageContent({
                   ...localPageContent,
@@ -72,7 +72,7 @@ const HomepageTab: React.FC<HomepageTabProps> = ({ pageContent, onUpdatePageCont
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Primary Button Text</label>
               <input
-                value={localPageContent.hero.primaryButtonText}
+                value={localPageContent.hero?.primaryButtonText || ''}
                 onChange={(e) =>
                   setLocalPageContent({
                     ...localPageContent,
@@ -85,7 +85,7 @@ const HomepageTab: React.FC<HomepageTabProps> = ({ pageContent, onUpdatePageCont
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Secondary Button Text</label>
               <input
-                value={localPageContent.hero.secondaryButtonText}
+                value={localPageContent.hero?.secondaryButtonText || ''}
                 onChange={(e) =>
                   setLocalPageContent({
                     ...localPageContent,
@@ -106,11 +106,14 @@ const HomepageTab: React.FC<HomepageTabProps> = ({ pageContent, onUpdatePageCont
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Programs Section</label>
             <input
-              value={localPageContent.sectionHeadings.programs}
+              value={localPageContent.sectionHeadings?.programs || ''}
               onChange={(e) =>
                 setLocalPageContent({
                   ...localPageContent,
-                  sectionHeadings: { ...localPageContent.sectionHeadings, programs: e.target.value }
+                  sectionHeadings: { 
+                    ...(localPageContent.sectionHeadings || { mentors: '', gallery: '' }), 
+                    programs: e.target.value 
+                  }
                 })
               }
               className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
@@ -119,11 +122,14 @@ const HomepageTab: React.FC<HomepageTabProps> = ({ pageContent, onUpdatePageCont
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Mentors Section</label>
             <input
-              value={localPageContent.sectionHeadings.mentors}
+              value={localPageContent.sectionHeadings?.mentors || ''}
               onChange={(e) =>
                 setLocalPageContent({
                   ...localPageContent,
-                  sectionHeadings: { ...localPageContent.sectionHeadings, mentors: e.target.value }
+                  sectionHeadings: { 
+                    ...(localPageContent.sectionHeadings || { programs: '', gallery: '' }), 
+                    mentors: e.target.value 
+                  }
                 })
               }
               className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
@@ -132,11 +138,14 @@ const HomepageTab: React.FC<HomepageTabProps> = ({ pageContent, onUpdatePageCont
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Gallery Section</label>
             <input
-              value={localPageContent.sectionHeadings.gallery}
+              value={localPageContent.sectionHeadings?.gallery || ''}
               onChange={(e) =>
                 setLocalPageContent({
                   ...localPageContent,
-                  sectionHeadings: { ...localPageContent.sectionHeadings, gallery: e.target.value }
+                  sectionHeadings: { 
+                    ...(localPageContent.sectionHeadings || { programs: '', mentors: '' }), 
+                    gallery: e.target.value 
+                  }
                 })
               }
               className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
@@ -146,19 +155,13 @@ const HomepageTab: React.FC<HomepageTabProps> = ({ pageContent, onUpdatePageCont
       </div>
 
       {/* About Us Section Component */}
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-        <AboutSection pageContent={localPageContent} onUpdate={setLocalPageContent} />
-      </div>
+      <AboutSection pageContent={localPageContent} onUpdate={setLocalPageContent} />
 
       {/* Media Section Component (Logo + Gallery) */}
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-        <MediaSection pageContent={localPageContent} onUpdate={setLocalPageContent} />
-      </div>
+      <MediaSection pageContent={localPageContent} onUpdate={setLocalPageContent} />
 
       {/* Background Images Component */}
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-        <BackgroundSection pageContent={localPageContent} onUpdate={setLocalPageContent} />
-      </div>
+      <BackgroundSection pageContent={localPageContent} onUpdate={setLocalPageContent} />
 
       {/* Contact Section */}
       <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
@@ -167,11 +170,14 @@ const HomepageTab: React.FC<HomepageTabProps> = ({ pageContent, onUpdatePageCont
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Heading</label>
             <input
-              value={localPageContent.contact.heading}
+              value={localPageContent.contact?.heading || ''}
               onChange={(e) =>
                 setLocalPageContent({
                   ...localPageContent,
-                  contact: { ...localPageContent.contact, heading: e.target.value }
+                  contact: { 
+                    ...(localPageContent.contact || { subheading: '', address: '', email: '' }), 
+                    heading: e.target.value 
+                  }
                 })
               }
               className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
@@ -180,11 +186,14 @@ const HomepageTab: React.FC<HomepageTabProps> = ({ pageContent, onUpdatePageCont
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Subheading</label>
             <input
-              value={localPageContent.contact.subheading}
+              value={localPageContent.contact?.subheading || ''}
               onChange={(e) =>
                 setLocalPageContent({
                   ...localPageContent,
-                  contact: { ...localPageContent.contact, subheading: e.target.value }
+                  contact: { 
+                    ...(localPageContent.contact || { heading: '', address: '', email: '' }), 
+                    subheading: e.target.value 
+                  }
                 })
               }
               className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
@@ -193,11 +202,14 @@ const HomepageTab: React.FC<HomepageTabProps> = ({ pageContent, onUpdatePageCont
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Address</label>
             <input
-              value={localPageContent.contact.address}
+              value={localPageContent.contact?.address || ''}
               onChange={(e) =>
                 setLocalPageContent({
                   ...localPageContent,
-                  contact: { ...localPageContent.contact, address: e.target.value }
+                  contact: { 
+                    ...(localPageContent.contact || { heading: '', subheading: '', email: '' }), 
+                    address: e.target.value 
+                  }
                 })
               }
               className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
@@ -206,11 +218,14 @@ const HomepageTab: React.FC<HomepageTabProps> = ({ pageContent, onUpdatePageCont
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Email</label>
             <input
-              value={localPageContent.contact.email}
+              value={localPageContent.contact?.email || ''}
               onChange={(e) =>
                 setLocalPageContent({
                   ...localPageContent,
-                  contact: { ...localPageContent.contact, email: e.target.value }
+                  contact: { 
+                    ...(localPageContent.contact || { heading: '', subheading: '', address: '' }), 
+                    email: e.target.value 
+                  }
                 })
               }
               className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white"
