@@ -12,7 +12,15 @@ interface CourseEditorProps {
 }
 
 const CourseEditor: React.FC<CourseEditorProps> = ({ course, lookupLists, onSave, onCancel }) => {
-  const [editingCourse, setEditingCourse] = useState<Course>(course);
+  // Ensure quiz and questions are always defined
+  const safeCourse: Course = {
+    ...course,
+    quiz: {
+      title: course.quiz?.title || '',
+      questions: Array.isArray(course.quiz?.questions) ? course.quiz.questions : []
+    }
+  };
+  const [editingCourse, setEditingCourse] = useState<Course>(safeCourse);
   const [isUploading, setIsUploading] = useState(false);
   const [viewingPdf, setViewingPdf] = useState<{ url: string; title: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
