@@ -1,3 +1,22 @@
+// Utility: Recursively remove or convert undefined values to null
+export function cleanUndefined(obj) {
+  if (Array.isArray(obj)) {
+    return obj.map(cleanUndefined);
+  } else if (obj && typeof obj === 'object') {
+    const cleaned = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value === undefined) {
+        cleaned[key] = null;
+      } else if (typeof value === 'object' && value !== null) {
+        cleaned[key] = cleanUndefined(value);
+      } else {
+        cleaned[key] = value;
+      }
+    }
+    return cleaned;
+  }
+  return obj;
+}
 // Firestore database service functions
 import { 
   collection, 
@@ -50,19 +69,18 @@ export const getCourses = async (lang = 'en') => {
 export const saveCourse = async (course, lang = 'en') => {
   try {
     // Prepare course data for Firestore: ensure icon is string and ageGroup is array
-    const courseData = {
+    let courseData = {
       ...course,
       icon: typeof course.icon === 'string' ? course.icon : 'coding', // Always save as string
       ageGroup: Array.isArray(course.ageGroup) ? course.ageGroup : (course.ageGroup ? [course.ageGroup] : []), // Ensure array
       headerBackgroundImage: course.headerBackgroundImage || null,
       headerBackgroundOpacity: course.headerBackgroundOpacity !== undefined ? course.headerBackgroundOpacity : 0.2
     };
-    
     // Remove ReactNode icon if present (can't serialize to Firestore)
     if (typeof courseData.icon !== 'string') {
       courseData.icon = 'coding';
     }
-    
+    courseData = cleanUndefined(courseData);
     if (course.id) {
       await setDoc(doc(db, getLangCollection(COLLECTIONS.COURSES, lang), course.id), courseData);
       return course.id;
@@ -114,11 +132,12 @@ export const getInstructors = async (lang = 'en') => {
 
 export const saveInstructor = async (instructor, lang = 'en') => {
   try {
+    const cleaned = cleanUndefined(instructor);
     if (instructor.id) {
-      await setDoc(doc(db, getLangCollection(COLLECTIONS.INSTRUCTORS, lang), instructor.id), instructor);
+      await setDoc(doc(db, getLangCollection(COLLECTIONS.INSTRUCTORS, lang), instructor.id), cleaned);
       return instructor.id;
     } else {
-      const { id, ...instructorData } = instructor;
+      const { id, ...instructorData } = cleaned;
       const docRef = await addDoc(collection(db, getLangCollection(COLLECTIONS.INSTRUCTORS, lang)), instructorData);
       return docRef.id;
     }
@@ -327,7 +346,8 @@ export const getPageContent = async (lang = 'en') => {
 
 export const savePageContent = async (pageContent, lang = 'en') => {
   try {
-    await setDoc(doc(db, getLangCollection(COLLECTIONS.PAGE_CONTENT, lang), 'main'), pageContent);
+    const cleaned = cleanUndefined(pageContent);
+    await setDoc(doc(db, getLangCollection(COLLECTIONS.PAGE_CONTENT, lang), 'main'), cleaned);
   } catch (error) {
     console.error('Error saving page content:', error);
     throw error;

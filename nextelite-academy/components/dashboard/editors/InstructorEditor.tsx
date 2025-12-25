@@ -9,8 +9,23 @@ interface InstructorEditorProps {
   onCancel: () => void;
 }
 
+
 const InstructorEditor: React.FC<InstructorEditorProps> = ({ instructor, onSave, onCancel }) => {
-  const [editingInstructor, setEditingInstructor] = useState<Instructor>(instructor);
+  const [activeLang, setActiveLang] = useState<'en' | 'zh'>('en');
+  const safeInstructor: Instructor = {
+    ...instructor,
+    en: {
+      name: instructor.en?.name || '',
+      role: instructor.en?.role || '',
+      bio: instructor.en?.bio || ''
+    },
+    zh: {
+      name: instructor.zh?.name || '',
+      role: instructor.zh?.role || '',
+      bio: instructor.zh?.bio || ''
+    }
+  };
+  const [editingInstructor, setEditingInstructor] = useState<Instructor>(safeInstructor);
   const [isUploading, setIsUploading] = useState(false);
 
   const handleSave = () => {
@@ -38,6 +53,21 @@ const InstructorEditor: React.FC<InstructorEditorProps> = ({ instructor, onSave,
         </div>
 
         <div className="p-8 space-y-6">
+          {/* Language Tabs */}
+          <div className="flex gap-2 mb-6">
+            <button
+              className={`px-4 py-2 rounded-t-lg font-bold ${activeLang === 'en' ? 'bg-brand-blue text-white' : 'bg-white text-brand-blue border'}`}
+              onClick={() => setActiveLang('en')}
+            >
+              English
+            </button>
+            <button
+              className={`px-4 py-2 rounded-t-lg font-bold ${activeLang === 'zh' ? 'bg-brand-blue text-white' : 'bg-white text-brand-blue border'}`}
+              onClick={() => setActiveLang('zh')}
+            >
+              繁體中文
+            </button>
+          </div>
           <div className="flex gap-6 items-start">
             <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 border-4 border-white shadow-lg shrink-0">
               <img src={editingInstructor.imageUrl} alt="" className="w-full h-full object-cover" />
@@ -46,9 +76,15 @@ const InstructorEditor: React.FC<InstructorEditorProps> = ({ instructor, onSave,
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Full Name</label>
                 <input
-                  value={editingInstructor.name}
+                  value={editingInstructor[activeLang].name}
                   onChange={(e) =>
-                    setEditingInstructor({ ...editingInstructor, name: e.target.value })
+                    setEditingInstructor({
+                      ...editingInstructor,
+                      [activeLang]: {
+                        ...editingInstructor[activeLang],
+                        name: e.target.value
+                      }
+                    })
                   }
                   className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none"
                 />
@@ -56,9 +92,15 @@ const InstructorEditor: React.FC<InstructorEditorProps> = ({ instructor, onSave,
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Role / Title</label>
                 <input
-                  value={editingInstructor.role}
+                  value={editingInstructor[activeLang].role}
                   onChange={(e) =>
-                    setEditingInstructor({ ...editingInstructor, role: e.target.value })
+                    setEditingInstructor({
+                      ...editingInstructor,
+                      [activeLang]: {
+                        ...editingInstructor[activeLang],
+                        role: e.target.value
+                      }
+                    })
                   }
                   className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none"
                 />
@@ -170,9 +212,15 @@ const InstructorEditor: React.FC<InstructorEditorProps> = ({ instructor, onSave,
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">Biography</label>
             <textarea
-              value={editingInstructor.bio}
+              value={editingInstructor[activeLang].bio}
               onChange={(e) =>
-                setEditingInstructor({ ...editingInstructor, bio: e.target.value })
+                setEditingInstructor({
+                  ...editingInstructor,
+                  [activeLang]: {
+                    ...editingInstructor[activeLang],
+                    bio: e.target.value
+                  }
+                })
               }
               className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none h-32"
             />

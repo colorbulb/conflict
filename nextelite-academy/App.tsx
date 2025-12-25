@@ -19,7 +19,8 @@ import {
   saveInstructor,
   saveCustomPages,
   saveMenuItems,
-  saveSubmission
+  saveSubmission,
+  initializeFirestore
 } from './firebase/db.js';
 import FloatingShape from './components/FloatingShape';
 import CourseCard from './components/CourseCard';
@@ -69,6 +70,10 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
     const loadData = async () => {
       try {
         setIsLoading(true);
+        
+        // Initialize Firebase if needed (will skip if data exists)
+        await initializeFirestore(INITIAL_DATA);
+        
         const [enData, zhData] = await Promise.all([
           getAppData('en'),
           getAppData('zh')
@@ -245,16 +250,17 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
       saveTrialSettings(settings, 'zh').catch(err => console.error('Error saving trial settings (zh):', err));
   };
 
-  const handleUpdatePageContent = async (pageContent: typeof INITIAL_DATA.en.pageContent) => {
+  const handleUpdatePageContent = async (pageContent: typeof INITIAL_DATA.en.pageContent, lang?: 'en' | 'zh') => {
+    const targetLang = lang || language;
     setDb(prev => ({
       ...prev,
-      [language]: {
-        ...prev[language],
+      [targetLang]: {
+        ...prev[targetLang],
         pageContent
       }
     }));
     try {
-      await savePageContent(pageContent, language);
+      await savePageContent(pageContent, targetLang);
       return true;
     } catch (err) {
       console.error('Error saving page content:', err);
@@ -374,6 +380,8 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
             submissions={currentData.submissions}
             translations={translations}
             pageContent={currentData.pageContent || INITIAL_DATA[language].pageContent}
+            enPageContent={db.en.pageContent || INITIAL_DATA.en.pageContent}
+            zhPageContent={db.zh.pageContent || INITIAL_DATA.zh.pageContent}
             lookupLists={currentData.lookupLists || INITIAL_DATA[language].lookupLists}
             customPages={currentData.customPages || []}
             enCustomPages={db.en.customPages || []}
@@ -609,23 +617,26 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {currentData.instructors && currentData.instructors.length > 0 ? (
-                  currentData.instructors.map((instructor, idx) => (
-                    <motion.div 
-                      key={instructor.id}
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: idx * 0.1 }}
-                      className="bg-white p-8 rounded-3xl shadow-md text-center group hover:shadow-2xl transition-all duration-300 border border-gray-100"
-                    >
-                      <div className="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden border-4 border-brand-yellow group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                        <img src={instructor.imageUrl} alt={instructor.name} className="w-full h-full object-cover" />
-                      </div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-1">{instructor.name}</h3>
-                      <p className="text-brand-blue font-bold text-sm mb-4 uppercase tracking-wide">{instructor.role}</p>
-                      <p className="text-gray-900 leading-relaxed">{instructor.bio}</p>
-                    </motion.div>
-                  ))
+                  currentData.instructors.map((instructor, idx) => {
+                    const langInst = { ...instructor, ...instructor[language] };
+                    return (
+                      <motion.div 
+                        key={instructor.id}
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="bg-white p-8 rounded-3xl shadow-md text-center group hover:shadow-2xl transition-all duration-300 border border-gray-100"
+                      >
+                        <div className="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden border-4 border-brand-yellow group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                          <img src={langInst.imageUrl} alt={langInst.name} className="w-full h-full object-cover" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-1">{langInst.name}</h3>
+                        <p className="text-brand-blue font-bold text-sm mb-4 uppercase tracking-wide">{langInst.role}</p>
+                        <p className="text-gray-900 leading-relaxed">{langInst.bio}</p>
+                      </motion.div>
+                    );
+                  })
                 ) : (
                   <div className="col-span-3 text-center py-12 text-gray-500">
                     <p className="text-lg">No instructors available yet.</p>
@@ -749,9 +760,10 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
             <p className="text-gray-900 max-w-2xl mx-auto text-lg">{pageContent.sections.programs.subheading}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {currentData.courses.map((course) => (
-              <CourseCard key={course.id} course={getCourseWithIcon(course)} />
-            ))}
+            {currentData.courses.map((course) => {
+              const langCourse = { ...course, ...course[language] };
+              return <CourseCard key={course.id} course={getCourseWithIcon(langCourse)} />;
+            })}
           </div>
         </div>
       </div>
@@ -762,15 +774,14 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
   const CourseDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const course = currentData.courses.find(c => c.id === id);
-    
     if (!course) {
       return <Navigate to="/courses" replace />;
     }
-
+    const langCourse = { ...course, ...course[language] };
     return (
-      <CourseDetail 
-        course={getCourseWithIcon(course)} 
-        onBack={() => navigate('/courses')} 
+      <CourseDetail
+        course={getCourseWithIcon(langCourse)}
+        onBack={() => navigate('/courses')}
         onEnroll={() => {
           setIsBookingModalOpen(true);
           navigate('/courses');

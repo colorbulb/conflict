@@ -19,7 +19,15 @@ const Layout: React.FC<LayoutProps> = ({ children, trialSettings, logoUrl, menuI
   const { language, setLanguage, t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const [closeTimeout, setCloseTimeout] = useState<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
+  
+  // Get breakpoint from settings, default to 'md'
+  const breakpoint = trialSettings?.menuBreakpoint || 'md';
+  
+  // Generate responsive classes based on breakpoint
+  const desktopClass = `hidden ${breakpoint}:flex`;
+  const mobileClass = breakpoint === 'sm' ? 'flex' : breakpoint === 'md' ? 'md:hidden' : breakpoint === 'lg' ? 'lg:hidden' : 'xl:hidden';
 
   // Build menu structure from menuItems or fallback to default
   const navLinks = useMemo(() => {
@@ -106,12 +114,29 @@ const Layout: React.FC<LayoutProps> = ({ children, trialSettings, logoUrl, menuI
                 const hasSubmenu = item.children && item.children.length > 0;
                 const path = getMenuPath(item);
                 
+                const handleMouseEnter = () => {
+                  if (closeTimeout) {
+                    clearTimeout(closeTimeout);
+                    setCloseTimeout(null);
+                  }
+                  if (hasSubmenu) {
+                    setOpenSubmenu(item.id);
+                  }
+                };
+                
+                const handleMouseLeave = () => {
+                  const timeout = setTimeout(() => {
+                    setOpenSubmenu(null);
+                  }, 200); // 200ms delay before closing
+                  setCloseTimeout(timeout);
+                };
+                
                 return (
-                  <div 
+                  <div
                     key={item.id}
                     className="relative group"
-                    onMouseEnter={() => hasSubmenu && setOpenSubmenu(item.id)}
-                    onMouseLeave={() => hasSubmenu && setOpenSubmenu(null)}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
                   >
                     {hasSubmenu ? (
                       <button className="text-gray-800 hover:text-brand-blue font-semibold transition-colors flex items-center gap-1">
@@ -119,23 +144,30 @@ const Layout: React.FC<LayoutProps> = ({ children, trialSettings, logoUrl, menuI
                         <ChevronDown className="w-4 h-4" />
                       </button>
                     ) : (
-                      <Link 
+                      <Link
                         to={path}
                         className="text-gray-800 hover:text-brand-blue font-semibold transition-colors"
                       >
                         {item.label}
                       </Link>
                     )}
-                    
                     {/* Submenu Dropdown */}
                     {hasSubmenu && openSubmenu === item.id && (
-                      <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                      <div
+                        className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50"
+                      >
                         {item.children!.map((child) => (
                           <Link
                             key={child.id}
                             to={getMenuPath(child)}
                             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-blue transition-colors"
-                            onClick={() => setOpenSubmenu(null)}
+                            onClick={() => {
+                              setOpenSubmenu(null);
+                              if (closeTimeout) {
+                                clearTimeout(closeTimeout);
+                                setCloseTimeout(null);
+                              }
+                            }}
                           >
                             {child.label}
                           </Link>

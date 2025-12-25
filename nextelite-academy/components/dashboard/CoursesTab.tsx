@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Course } from '../../types';
+import { Course, Language } from '../../types';
+import { useLanguage } from '../LanguageContext';
 import { Plus, Edit } from 'lucide-react';
 import CourseEditor from './editors/CourseEditor';
 
@@ -10,24 +11,39 @@ interface CoursesTabProps {
 }
 
 const CoursesTab: React.FC<CoursesTabProps> = ({ courses, lookupLists, onUpdateCourse }) => {
+  const { language } = useLanguage();
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
 
   const handleAddCourse = () => {
     const newCourse: Course = {
       id: Math.random().toString(36).substr(2, 9),
-      title: 'New Course',
-      description: '',
+      slug: 'new-course',
+      en: {
+        title: 'New Course',
+        description: '',
+        fullDescription: '',
+        outline: [''],
+        attachments: [],
+        galleryImages: [],
+        quiz: { title: '', questions: [] }
+      },
+      zh: {
+        title: '新課程',
+        description: '',
+        fullDescription: '',
+        outline: [''],
+        attachments: [],
+        galleryImages: [],
+        quiz: { title: '', questions: [] }
+      },
       ageGroup: [],
       color: 'bg-brand-blue',
       icon: 'graduation',
-      outline: [''],
-      attachments: [],
-      quiz: { questions: [] },
       price: 0,
       duration: '',
       category: lookupLists.courseCategories?.[0] || 'General',
+      difficulty: lookupLists.difficulties?.[0] || '',
       imageUrl: '',
-      fullDescription: '',
       headerBackgroundImage: '',
       headerBackgroundOpacity: 0.2
     };
@@ -69,7 +85,7 @@ const CoursesTab: React.FC<CoursesTabProps> = ({ courses, lookupLists, onUpdateC
           >
             <div className={`absolute top-0 left-0 w-2 h-full ${course.color}`}></div>
             <div className="flex justify-between items-start mb-4 pl-4">
-              <h3 className="font-bold text-lg leading-tight">{course.title}</h3>
+              <h3 className="font-bold text-lg leading-tight">{course[language as Language]?.title || course.title}</h3>
               <button
                 onClick={() => setEditingCourse(course)}
                 className="text-gray-400 hover:text-brand-blue bg-gray-50 p-2 rounded-lg transition-colors"
@@ -77,7 +93,7 @@ const CoursesTab: React.FC<CoursesTabProps> = ({ courses, lookupLists, onUpdateC
                 <Edit className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-gray-500 text-sm line-clamp-3 mb-4 pl-4">{course.description}</p>
+            <p className="text-gray-500 text-sm line-clamp-3 mb-4 pl-4">{course[language as Language]?.description || course.description}</p>
             <div className="pl-4 pt-4 border-t border-gray-50 flex items-center text-xs font-bold text-gray-400 uppercase tracking-wider">
               {Array.isArray(course.ageGroup) ? course.ageGroup.join(', ') : course.ageGroup}
             </div>

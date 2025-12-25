@@ -12,12 +12,28 @@ interface CourseEditorProps {
 }
 
 const CourseEditor: React.FC<CourseEditorProps> = ({ course, lookupLists, onSave, onCancel }) => {
-  // Ensure quiz and questions are always defined
+  // Tab state for EN/ZH
+  const [activeLang, setActiveLang] = useState<'en' | 'zh'>('en');
+  // Ensure translation objects exist
   const safeCourse: Course = {
     ...course,
-    quiz: {
-      title: course.quiz?.title || '',
-      questions: Array.isArray(course.quiz?.questions) ? course.quiz.questions : []
+    en: {
+      title: course.en?.title || '',
+      description: course.en?.description || '',
+      fullDescription: course.en?.fullDescription || '',
+      outline: Array.isArray(course.en?.outline) ? course.en.outline : [],
+      attachments: Array.isArray(course.en?.attachments) ? course.en.attachments : [],
+      galleryImages: Array.isArray(course.en?.galleryImages) ? course.en.galleryImages : [],
+      quiz: course.en?.quiz || { title: '', questions: [] }
+    },
+    zh: {
+      title: course.zh?.title || '',
+      description: course.zh?.description || '',
+      fullDescription: course.zh?.fullDescription || '',
+      outline: Array.isArray(course.zh?.outline) ? course.zh.outline : [],
+      attachments: Array.isArray(course.zh?.attachments) ? course.zh.attachments : [],
+      galleryImages: Array.isArray(course.zh?.galleryImages) ? course.zh.galleryImages : [],
+      quiz: course.zh?.quiz || { title: '', questions: [] }
     }
   };
   const [editingCourse, setEditingCourse] = useState<Course>(safeCourse);
@@ -32,60 +48,84 @@ const CourseEditor: React.FC<CourseEditorProps> = ({ course, lookupLists, onSave
   const addOutlineItem = () => {
     setEditingCourse({
       ...editingCourse,
-      outline: [...editingCourse.outline, '']
+      [activeLang]: {
+        ...editingCourse[activeLang],
+        outline: [...editingCourse[activeLang].outline, '']
+      }
     });
   };
 
   const updateCourseOutline = (idx: number, value: string) => {
-    const newOutline = [...editingCourse.outline];
+    const newOutline = [...editingCourse[activeLang].outline];
     newOutline[idx] = value;
-    setEditingCourse({ ...editingCourse, outline: newOutline });
+    setEditingCourse({
+      ...editingCourse,
+      [activeLang]: {
+        ...editingCourse[activeLang],
+        outline: newOutline
+      }
+    });
   };
 
   const removeOutlineItem = (idx: number) => {
     setEditingCourse({
       ...editingCourse,
-      outline: editingCourse.outline.filter((_, i) => i !== idx)
+      [activeLang]: {
+        ...editingCourse[activeLang],
+        outline: editingCourse[activeLang].outline.filter((_, i) => i !== idx)
+      }
     });
   };
 
   const addQuizQuestion = () => {
     setEditingCourse({
       ...editingCourse,
-      quiz: {
-        ...editingCourse.quiz,
-        questions: [
-          ...editingCourse.quiz.questions,
-          { question: '', options: ['', '', '', ''], correctAnswer: 0 }
-        ]
+      [activeLang]: {
+        ...editingCourse[activeLang],
+        quiz: {
+          ...editingCourse[activeLang].quiz,
+          questions: [
+            ...editingCourse[activeLang].quiz.questions,
+            { question: '', options: ['', '', '', ''], correctAnswer: 0 }
+          ]
+        }
       }
     });
   };
 
   const updateQuizQuestion = (idx: number, field: string, value: any) => {
-    const newQuestions = [...editingCourse.quiz.questions];
+    const newQuestions = [...editingCourse[activeLang].quiz.questions];
     newQuestions[idx] = { ...newQuestions[idx], [field]: value };
     setEditingCourse({
       ...editingCourse,
-      quiz: { ...editingCourse.quiz, questions: newQuestions }
+      [activeLang]: {
+        ...editingCourse[activeLang],
+        quiz: { ...editingCourse[activeLang].quiz, questions: newQuestions }
+      }
     });
   };
 
   const updateQuizOption = (qIdx: number, optIdx: number, value: string) => {
-    const newQuestions = [...editingCourse.quiz.questions];
+    const newQuestions = [...editingCourse[activeLang].quiz.questions];
     newQuestions[qIdx].options[optIdx] = value;
     setEditingCourse({
       ...editingCourse,
-      quiz: { ...editingCourse.quiz, questions: newQuestions }
+      [activeLang]: {
+        ...editingCourse[activeLang],
+        quiz: { ...editingCourse[activeLang].quiz, questions: newQuestions }
+      }
     });
   };
 
   const removeQuizQuestion = (idx: number) => {
     setEditingCourse({
       ...editingCourse,
-      quiz: {
-        ...editingCourse.quiz,
-        questions: editingCourse.quiz.questions.filter((_, i) => i !== idx)
+      [activeLang]: {
+        ...editingCourse[activeLang],
+        quiz: {
+          ...editingCourse[activeLang].quiz,
+          questions: editingCourse[activeLang].quiz.questions.filter((_, i) => i !== idx)
+        }
       }
     });
   };
@@ -112,25 +152,69 @@ const CourseEditor: React.FC<CourseEditorProps> = ({ course, lookupLists, onSave
           </button>
         </div>
 
+        {/* Language Tabs */}
+        <div className="flex gap-2 p-4 border-b bg-gray-50">
+          <button
+            className={`px-4 py-2 rounded-t-lg font-bold ${activeLang === 'en' ? 'bg-brand-blue text-white' : 'bg-white text-brand-blue border'}`}
+            onClick={() => setActiveLang('en')}
+          >
+            English
+          </button>
+          <button
+            className={`px-4 py-2 rounded-t-lg font-bold ${activeLang === 'zh' ? 'bg-brand-blue text-white' : 'bg-white text-brand-blue border'}`}
+            onClick={() => setActiveLang('zh')}
+          >
+            繁體中文
+          </button>
+        </div>
+
         <div className="p-8 space-y-8">
-          {/* Basic Info */}
+          {/* Basic Info (Tabbed) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Course Title</label>
               <input
-                value={editingCourse.title}
-                onChange={(e) => setEditingCourse({ ...editingCourse, title: e.target.value })}
+                value={editingCourse[activeLang].title}
+                onChange={(e) => {
+                  const newTitle = e.target.value;
+                  setEditingCourse({
+                    ...editingCourse,
+                    [activeLang]: {
+                      ...editingCourse[activeLang],
+                      title: newTitle
+                    },
+                    // Auto-generate slug from English title
+                    ...(activeLang === 'en' && {
+                      slug: newTitle
+                        .toLowerCase()
+                        .replace(/[^a-z0-9\s-]/g, '')
+                        .replace(/\s+/g, '-')
+                        .replace(/-+/g, '-')
+                        .trim()
+                    })
+                  });
+                }}
                 className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white transition-colors"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">URL Slug</label>
+              <input
+                value={editingCourse.slug || ''}
+                onChange={(e) => setEditingCourse({ ...editingCourse, slug: e.target.value })}
+                className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white transition-colors font-mono text-sm"
+                placeholder="course-url-slug"
+              />
+              <p className="text-xs text-gray-500 mt-1">Auto-generated from English title, can be edited</p>
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-bold text-gray-700 mb-2">
                 Age Groups (Select Multiple)
               </label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto border rounded-xl p-4 bg-gray-50">
-                {lookupLists.ageGroups.map((age) => (
+                {lookupLists.ageGroups.map((age, index) => (
                   <label
-                    key={age}
+                    key={`age-${index}-${age}`}
                     className="flex items-center gap-2 cursor-pointer hover:bg-white p-2 rounded-lg transition-colors"
                   >
                     <input
@@ -181,15 +265,34 @@ const CourseEditor: React.FC<CourseEditorProps> = ({ course, lookupLists, onSave
                 ))}
               </select>
             </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Difficulty Level</label>
+              <select
+                value={editingCourse.difficulty || ''}
+                onChange={(e) => setEditingCourse({ ...editingCourse, difficulty: e.target.value })}
+                className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white transition-colors"
+              >
+                <option value="">Select Difficulty</option>
+                {lookupLists.difficulties?.map((diff) => (
+                  <option key={diff} value={diff}>
+                    {diff}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-bold text-gray-700 mb-1">
                 Short Description
               </label>
               <textarea
-                value={editingCourse.description}
-                onChange={(e) =>
-                  setEditingCourse({ ...editingCourse, description: e.target.value })
-                }
+                value={editingCourse[activeLang].description}
+                onChange={(e) => setEditingCourse({
+                  ...editingCourse,
+                  [activeLang]: {
+                    ...editingCourse[activeLang],
+                    description: e.target.value
+                  }
+                })}
                 className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none bg-gray-50 focus:bg-white transition-colors"
                 rows={2}
               />
@@ -199,8 +302,15 @@ const CourseEditor: React.FC<CourseEditorProps> = ({ course, lookupLists, onSave
                 Full Description
               </label>
               <RichTextEditor
-                initialValue={editingCourse.fullDescription || ''}
-                onChange={(html) => setEditingCourse({ ...editingCourse, fullDescription: html })}
+                key={`fullDescription-${activeLang}`}
+                initialValue={editingCourse[activeLang].fullDescription || ''}
+                onChange={(html) => setEditingCourse({
+                  ...editingCourse,
+                  [activeLang]: {
+                    ...editingCourse[activeLang],
+                    fullDescription: html
+                  }
+                })}
                 placeholder="Enter detailed course description..."
               />
             </div>
@@ -336,7 +446,7 @@ const CourseEditor: React.FC<CourseEditorProps> = ({ course, lookupLists, onSave
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Color Theme</label>
               <select
-                value={editingCourse.color}
+                value={typeof editingCourse.color === 'string' ? editingCourse.color : 'bg-brand-blue'}
                 onChange={(e) => setEditingCourse({ ...editingCourse, color: e.target.value })}
                 className="w-full border rounded-xl p-3 bg-white"
               >
@@ -390,7 +500,7 @@ const CourseEditor: React.FC<CourseEditorProps> = ({ course, lookupLists, onSave
               </button>
             </div>
             <div className="space-y-2">
-              {editingCourse.outline.map((item, idx) => (
+              {editingCourse[activeLang].outline.map((item, idx) => (
                 <div key={idx} className="flex gap-2">
                   <div className="bg-gray-100 flex items-center justify-center w-8 rounded text-gray-500 text-xs font-bold">
                     {idx + 1}
@@ -445,7 +555,10 @@ const CourseEditor: React.FC<CourseEditorProps> = ({ course, lookupLists, onSave
                     const results = await Promise.all(uploadPromises);
                     setEditingCourse({
                       ...editingCourse,
-                      attachments: [...editingCourse.attachments, ...results]
+                      [activeLang]: {
+                        ...editingCourse[activeLang],
+                        attachments: [...editingCourse[activeLang].attachments, ...results]
+                      }
                     });
                     alert("PDF(s) uploaded! Don't forget to save the course.");
                   } catch (error) {
@@ -478,7 +591,10 @@ const CourseEditor: React.FC<CourseEditorProps> = ({ course, lookupLists, onSave
                       const results = await Promise.all(uploadPromises);
                       setEditingCourse({
                         ...editingCourse,
-                        attachments: [...editingCourse.attachments, ...results]
+                        [activeLang]: {
+                          ...editingCourse[activeLang],
+                          attachments: [...editingCourse[activeLang].attachments, ...results]
+                        }
                       });
                       alert("PDF(s) uploaded! Don't forget to save the course.");
                     } catch (error) {
@@ -491,9 +607,9 @@ const CourseEditor: React.FC<CourseEditorProps> = ({ course, lookupLists, onSave
                 }}
               />
             </div>
-            {editingCourse.attachments.length > 0 && (
+            {editingCourse[activeLang].attachments.length > 0 && (
               <div className="mt-4 space-y-2">
-                {editingCourse.attachments.map((att, idx) => (
+                {editingCourse[activeLang].attachments.map((att, idx) => (
                   <div
                     key={idx}
                     className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200"
@@ -525,7 +641,10 @@ const CourseEditor: React.FC<CourseEditorProps> = ({ course, lookupLists, onSave
                           if (confirm('Delete this attachment?')) {
                             setEditingCourse({
                               ...editingCourse,
-                              attachments: editingCourse.attachments.filter((_, i) => i !== idx)
+                              [activeLang]: {
+                                ...editingCourse[activeLang],
+                                attachments: editingCourse[activeLang].attachments.filter((_, i) => i !== idx)
+                              }
                             });
                           }
                         }}
@@ -552,7 +671,7 @@ const CourseEditor: React.FC<CourseEditorProps> = ({ course, lookupLists, onSave
               </button>
             </div>
             <div className="space-y-6">
-              {editingCourse.quiz.questions.map((q, qIdx) => (
+              {editingCourse[activeLang].quiz.questions.map((q, qIdx) => (
                 <div key={qIdx} className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
                   <div className="flex justify-between items-start mb-4">
                     <h4 className="font-bold text-gray-700">Question {qIdx + 1}</h4>

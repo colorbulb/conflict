@@ -14,11 +14,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ initialValue, onChange,
 
   useEffect(() => {
     if (contentRef.current && contentRef.current.innerHTML !== initialValue) {
-        // Only set on mount or if completely different to avoid cursor jumps
-        // For a simple CMS this is usually acceptable
         contentRef.current.innerHTML = initialValue;
     }
-  }, []); // Intentionally empty to only set initial value once
+  }, [initialValue]);
 
   const handleInput = () => {
     if (contentRef.current) {

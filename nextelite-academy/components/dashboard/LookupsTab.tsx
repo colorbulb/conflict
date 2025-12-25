@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Save, List as ListIcon } from 'lucide-react';
 
 interface LookupsTabProps {
-  lookupLists: { ageGroups: string[]; courseCategories: string[]; blogCategories: string[] };
-  onUpdateLookupLists: (lists: { ageGroups: string[]; courseCategories: string[]; blogCategories: string[] }) => void;
+  lookupLists: { ageGroups: string[]; courseCategories: string[]; blogCategories: string[]; difficulties: string[] };
+  onUpdateLookupLists: (lists: { ageGroups: string[]; courseCategories: string[]; blogCategories: string[]; difficulties: string[] }) => void;
 }
 
 const LookupsTab: React.FC<LookupsTabProps> = ({ lookupLists, onUpdateLookupLists }) => {
@@ -35,7 +35,7 @@ const LookupsTab: React.FC<LookupsTabProps> = ({ lookupLists, onUpdateLookupList
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Age Groups */}
           <div>
             <div className="flex justify-between items-center mb-4">
@@ -197,6 +197,67 @@ const LookupsTab: React.FC<LookupsTabProps> = ({ lookupLists, onUpdateLookupList
                         setLocalLookupLists({
                           ...localLookupLists,
                           blogCategories: (localLookupLists.blogCategories || []).filter(
+                            (_, i) => i !== idx
+                          )
+                        });
+                      }
+                    }}
+                    className="text-red-400 hover:text-red-600 p-1"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Difficulties */}
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="text-lg font-bold text-gray-800">Difficulties</h4>
+              <button
+                onClick={() => {
+                  const newItem = prompt('Enter new difficulty level:');
+                  if (newItem && newItem.trim()) {
+                    setLocalLookupLists({
+                      ...localLookupLists,
+                      difficulties: [
+                        ...(localLookupLists.difficulties || []),
+                        newItem.trim()
+                      ]
+                    });
+                  }
+                }}
+                className="text-brand-blue hover:text-brand-purple font-bold text-sm flex items-center gap-1"
+              >
+                <Plus className="w-4 h-4" /> Add
+              </button>
+            </div>
+            <div className="space-y-2 max-h-[500px] overflow-y-auto">
+              {(localLookupLists.difficulties || []).map((diff, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200"
+                >
+                  <input
+                    type="text"
+                    value={diff}
+                    onChange={(e) => {
+                      const newDifficulties = [...(localLookupLists.difficulties || [])];
+                      newDifficulties[idx] = e.target.value;
+                      setLocalLookupLists({
+                        ...localLookupLists,
+                        difficulties: newDifficulties
+                      });
+                    }}
+                    className="flex-1 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-brand-blue outline-none bg-white"
+                  />
+                  <button
+                    onClick={() => {
+                      if (confirm('Delete this difficulty level?')) {
+                        setLocalLookupLists({
+                          ...localLookupLists,
+                          difficulties: (localLookupLists.difficulties || []).filter(
                             (_, i) => i !== idx
                           )
                         });

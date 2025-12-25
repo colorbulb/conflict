@@ -19,33 +19,46 @@ export interface Attachment {
   url: string;
 }
 
-export interface Course {
-  id: string;
+export interface CourseTranslation {
   title: string;
-  ageGroup: string[]; // Multiple age groups
-  category: string;
   description: string;
-  fullDescription?: string; // Detailed description for the page (HTML)
-  icon: React.ReactNode;
-  color: string;
+  fullDescription?: string;
   outline: string[];
   attachments: Attachment[];
-  galleryImages?: string[]; // Specific images for this course
-  quiz?: Quiz; // Optional quiz module
-  headerBackgroundImage?: string; // Background image for course detail header
-  headerBackgroundOpacity?: number; // Opacity for background (default 0.2)
+  galleryImages?: string[];
+  quiz?: Quiz;
+}
+
+export interface Course {
+  id: string;
+  slug?: string;
+  en: CourseTranslation;
+  zh: CourseTranslation;
+  ageGroup: string[];
+  category: string;
+  difficulty?: string;
+  icon: React.ReactNode;
+  color: string;
+  headerBackgroundImage?: string;
+  headerBackgroundOpacity?: number;
+}
+
+export interface InstructorTranslation {
+  name: string;
+  role: string;
+  bio: string;
 }
 
 export interface Instructor {
   id: string;
-  name: string;
-  role: string;
-  bio: string;
+  en: InstructorTranslation;
+  zh: InstructorTranslation;
   imageUrl: string;
 }
 
 export interface BlogPost {
   id: string;
+  slug?: string;
   title: string;
   excerpt: string;
   content: string; // HTML content
@@ -92,6 +105,7 @@ export interface TrialSettings {
   message: string;
   blockedDates: string[]; // ISO Date strings (YYYY-MM-DD)
   customAvailability?: Record<string, string[]>; // Map 'YYYY-MM-DD' to array of time strings
+  menuBreakpoint?: 'sm' | 'md' | 'lg' | 'xl'; // Responsive breakpoint for hamburger menu
 }
 
 export interface Submission {

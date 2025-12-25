@@ -16,6 +16,7 @@ const BlogTab: React.FC<BlogTabProps> = ({ blogPosts, lookupLists, onUpdateBlog 
   const createNewPost = () => {
     const newPost: BlogPost = {
       id: Math.random().toString(36).substr(2, 9),
+      slug: 'new-blog-post',
       title: 'New Blog Post',
       excerpt: '',
       content: '',
@@ -76,9 +77,33 @@ const BlogTab: React.FC<BlogTabProps> = ({ blogPosts, lookupLists, onUpdateBlog 
               <label className="block text-sm font-bold text-gray-700 mb-1">Title</label>
               <input
                 value={editingPost.title}
-                onChange={(e) => setEditingPost({ ...editingPost, title: e.target.value })}
+                onChange={(e) => {
+                  const newTitle = e.target.value;
+                  setEditingPost({
+                    ...editingPost,
+                    title: newTitle,
+                    slug: newTitle
+                      .toLowerCase()
+                      .replace(/[^a-z0-9\s-]/g, '')
+                      .replace(/\s+/g, '-')
+                      .replace(/-+/g, '-')
+                      .trim()
+                  });
+                }}
                 className="w-full border rounded-xl p-3 text-lg font-bold focus:ring-2 focus:ring-brand-blue outline-none"
               />
+            </div>
+
+            {/* Slug */}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">URL Slug</label>
+              <input
+                value={editingPost.slug || ''}
+                onChange={(e) => setEditingPost({ ...editingPost, slug: e.target.value })}
+                className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-brand-blue outline-none font-mono text-sm"
+                placeholder="blog-post-url-slug"
+              />
+              <p className="text-xs text-gray-500 mt-1">Auto-generated from title, can be edited</p>
             </div>
 
             {/* Excerpt */}

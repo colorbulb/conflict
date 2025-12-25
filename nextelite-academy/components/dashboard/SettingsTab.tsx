@@ -110,6 +110,34 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               onUpdateTrial(settings);
             }}
           />
+          
+          {/* Menu Breakpoint Setting */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <h4 className="text-lg font-bold text-gray-800 mb-3">Menu Breakpoint</h4>
+            <p className="text-sm text-gray-600 mb-4">
+              Choose when the menu switches to hamburger mode
+            </p>
+            <select
+              value={localTrial.menuBreakpoint || 'md'}
+              onChange={(e) => {
+                const updated = {
+                  ...localTrial,
+                  menuBreakpoint: e.target.value as 'sm' | 'md' | 'lg' | 'xl'
+                };
+                setLocalTrial(updated);
+                onUpdateTrial(updated);
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-blue focus:border-brand-blue"
+            >
+              <option value="sm">Small (640px) - Mobile First</option>
+              <option value="md">Medium (768px) - Tablet</option>
+              <option value="lg">Large (1024px) - Desktop</option>
+              <option value="xl">Extra Large (1280px) - Wide Desktop</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-2">
+              Current: <span className="font-mono font-semibold">{localTrial.menuBreakpoint || 'md'}</span>
+            </p>
+          </div>
         </div>
       </div>
     </div>

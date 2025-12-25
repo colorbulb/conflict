@@ -43,10 +43,29 @@ export const AGE_GROUPS = [
   'All Ages',
 ];
 
+export const AGE_GROUPS_ZH = [
+  '學前班 (3-5歲)',
+  '幼稚園 (5-6歲)',
+  '小一至小二 (6-8歲)',
+  '小三至小四 (8-10歲)',
+  '小五至小六 (10-12歲)',
+  '小三至中二',
+  '中一至中二 (12-14歲)',
+  '中三至中四 (14-16歲)',
+  '中五至中六 (16-18歲)',
+  '所有年齡',
+];
+
 export const DIFFICULTY_LEVELS = [
   'Beginner',
   'Intermediate',
   'Advanced',
+];
+
+export const DIFFICULTY_LEVELS_ZH = [
+  '初級',
+  '中級',
+  '高級',
 ];
 
 export const COURSE_CATEGORIES = [
@@ -61,6 +80,18 @@ export const COURSE_CATEGORIES = [
   'Other',
 ];
 
+export const COURSE_CATEGORIES_ZH = [
+  '學術',
+  '語言與溝通',
+  'STEM',
+  '藝術與創意',
+  '體育與體能',
+  '生活技能',
+  '考試準備',
+  '競賽培訓',
+  '其他',
+];
+
 export const BLOG_CATEGORIES = [
   'News',
   'Achievements',
@@ -69,6 +100,16 @@ export const BLOG_CATEGORIES = [
   'Events',
   'Announcements',
   'Other'
+];
+
+export const BLOG_CATEGORIES_ZH = [
+  '新聞',
+  '成就',
+  '教育',
+  '建議與提示',
+  '活動',
+  '公告',
+  '其他'
 ];
 
 const DEFAULT_THEME = {
@@ -389,10 +430,10 @@ export const INITIAL_DATA: { en: AppData; zh: AppData } = {
     submissions: [],
     pageContent: DEFAULT_PAGE_CONTENT_ZH,
     lookupLists: {
-      ageGroups: AGE_GROUPS,
-      courseCategories: COURSE_CATEGORIES,
-      blogCategories: BLOG_CATEGORIES,
-      difficulties: DIFFICULTY_LEVELS,
+      ageGroups: AGE_GROUPS_ZH,
+      courseCategories: COURSE_CATEGORIES_ZH,
+      blogCategories: BLOG_CATEGORIES_ZH,
+      difficulties: DIFFICULTY_LEVELS_ZH,
     },
     blogPosts: [
        {
