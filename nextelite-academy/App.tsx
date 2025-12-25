@@ -889,7 +889,11 @@ const AppContent: React.FC<AppContentProps> = ({ translations, onUpdateTranslati
   // About Us Page Component
   const AboutPage = () => {
     const pageContent = currentData.pageContent || INITIAL_DATA[language].pageContent;
-    const aboutContent = pageContent.about || INITIAL_DATA[language].pageContent.about;
+    const aboutObj = pageContent.about;
+    const isTabbed = aboutObj && (aboutObj as any).en || (aboutObj as any).zh;
+    const aboutContent = isTabbed
+      ? ((aboutObj as any)?.[language] || INITIAL_DATA[language].pageContent.about)
+      : (aboutObj || INITIAL_DATA[language].pageContent.about);
     
     return (
       <div className="min-h-screen pt-24 pb-20 bg-slate-50 relative overflow-hidden">
